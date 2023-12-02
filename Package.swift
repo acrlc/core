@@ -17,7 +17,6 @@ let package = Package(
  ]
 )
 
-#if arch(wasm32) || os(Windows) || os(Linux)
 // add OpenCombine for framewords that depend on Combine functionality
 package.dependencies.append(
  .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.14.0")
@@ -34,4 +33,3 @@ for target in package.targets {
   break
  }
 }
-#endif
