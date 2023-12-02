@@ -71,7 +71,7 @@ let subject = Subject.debug
 A string, such as `optional` or `nil` that describes a subject or object
 ```swift
 extension Descriptor {
-	static let final: Self = "final"
+ static let final: Self = "final"
 }
 let descriptor = Descriptor.final
 ```
