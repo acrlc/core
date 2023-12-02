@@ -2,6 +2,7 @@
 ### Protocols
 #### `AutoCodable` aka `AutoEncodable` and `AutoDecodable` 
 A protocol for initializing and storing known data types
+
 An object that conforms to `AutoCodable` or the in practice protocol `JSONCodable`
 ```swift
 struct Value: AutoCodable {
