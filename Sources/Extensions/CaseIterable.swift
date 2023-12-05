@@ -1,10 +1,14 @@
 public extension CaseIterable where Self: Equatable, AllCases.Element == Self {
+ @_disfavoredOverload
  var next: AllCases.Element? {
   guard
-   let index = Self.allCases.firstIndex(of: self),
-   let nextIndex =
-   Self.allCases.index(index, offsetBy: 1, limitedBy: Self.allCases.endIndex)
+   let index = Self.allCases.firstIndex(of: self)
   else { return nil }
-  return Self.allCases[nextIndex]
+  let nextIndex = Self.allCases.index(index, offsetBy: 1)
+  if nextIndex < Self.allCases.endIndex {
+   return Self.allCases[nextIndex]
+  } else {
+   return nil
+  }
  }
 }
