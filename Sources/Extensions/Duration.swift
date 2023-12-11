@@ -29,24 +29,41 @@ public extension Duration {
 
  @inlinable
  var nanoseconds: Int64 {
-  guard self != .zero else { return .zero }
-  let components = components
-  return (components.seconds * 1_000_000_000) +
-   (components.attoseconds * 1_000_000_000)
+  let (seconds, attoseconds) = components
+  if seconds > 0 {
+   let __seconds = seconds * 1_000_000_000
+   if attoseconds > 0 {
+    return __seconds + attoseconds / 1_000_000_000
+   }
+   return __seconds
+  }
+
+  if attoseconds > 0 { return attoseconds / 1_000_000_000 }
+  return .zero
  }
 
  @inlinable
  var seconds: Double {
-  guard self != .zero else { return .zero }
-  let components = components
-  return Double(components.seconds) + (Double(components.attoseconds) * 1e-18)
+  let (seconds, attoseconds) = components
+  if seconds > 0 {
+   let __seconds = Double(seconds)
+   if attoseconds > 0 {
+    return __seconds + Double(attoseconds) * 1e-18
+   }
+   return __seconds
+  }
+
+  if attoseconds > 0 { return Double(attoseconds) * 1e-18 }
+  return .zero
  }
 }
 
 @available(macOS 13, iOS 16, *)
 extension Duration: LosslessStringConvertible {
  public enum Unit: String, CaseIterable, LosslessStringConvertible {
-  case nanoseconds = "n", milliseconds = "ms",
+  case nanoseconds = "n", 
+       microseconds = "us",
+       milliseconds = "ms",
        seconds = "s", minutes = "m", hours = "h", days = "d"
   /// The multiplication factor in base seconds.
   var factor: Double {
@@ -61,7 +78,8 @@ extension Duration: LosslessStringConvertible {
   var aliases: Set<String> {
    switch self {
    case .nanoseconds: return ["ns", "nano", "nanosecond", "nanoseconds"]
-   case .milliseconds: return ["µs", "millisecond", "milliseconds"]
+   case .microseconds: return ["u", "µ", "µs", "microseconds", "microseconds"]
+   case .milliseconds: return ["ms", "millisecond", "milliseconds"]
    case .seconds: return ["sec", "secs", "second", "seconds"]
    case .minutes: return ["min", "mins", "minute", "minutes"]
    case .hours: return ["hr", "hrs", "hour", "hours"]
@@ -79,6 +97,7 @@ extension Duration: LosslessStringConvertible {
   public var description: String {
    switch self {
    case .nanoseconds: return "nanoseconds"
+   case .microseconds: return "microseconds"
    case .milliseconds: return "milliseconds"
    case .seconds: return "seconds"
    case .minutes: return "minutes"
@@ -96,38 +115,31 @@ extension Duration: LosslessStringConvertible {
   let partition = description.index(after: index)
 
   let number = description[description.startIndex ..< partition]
-  let unit = description[partition ..< description.endIndex].filter(\.isLetter)
-  guard let number = Double(number), let unit = Unit(String(unit)) else {
-   return nil
-  }
+  let str = description[partition ..< description.endIndex].filter(\.isLetter)
+  guard let number = Double(number),
+        let unit = str.isEmpty ? .seconds : Unit(String(str)) else { return nil }
 
   switch unit {
   case .nanoseconds:
    if number >= 1e9 {
-    self = .nanoseconds(Int64(number))
+    self = .seconds(number / 1e9)
    } else {
-    self = Self(
-     secondsComponent: 0,
-     attosecondsComponent: Int64(number * 1e-9)
-    )
+    self = .nanoseconds(Int64(number))
    }
    return
+  case .microseconds:
+   if number >= 1_000_000 {
+    self = .seconds(number / 1_000_000)
+   } else {
+    self = .microseconds(number)
+   }
   case .milliseconds:
    if number >= 1000 {
+    self = .seconds(number / 1000)
+   } else {
     self = .milliseconds(Int64(number))
-   } else {
-    self = Self(
-     secondsComponent: 0,
-     attosecondsComponent: Int64(number * 1e-15)
-    )
    }
-  case .seconds:
-   if number >= 1 {
-    self = .seconds(number)
-   } else {
-    self = .nanoseconds(Int64(number * 1e-9))
-   }
-   return
+  case .seconds: self = .seconds(number)
   default:
    // TODO: fix possible overflow
    let number = number * unit.factor
