@@ -78,7 +78,7 @@ extension Duration: LosslessStringConvertible {
   var aliases: Set<String> {
    switch self {
    case .nanoseconds: return ["ns", "nano", "nanosecond", "nanoseconds"]
-   case .microseconds: return ["u", "µ", "µs", "microseconds", "microseconds"]
+   case .microseconds: return ["u", "µ", "µs", "microsecond", "microseconds"]
    case .milliseconds: return ["ms", "millisecond", "milliseconds"]
    case .seconds: return ["sec", "secs", "second", "seconds"]
    case .minutes: return ["min", "mins", "minute", "minutes"]
