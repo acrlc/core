@@ -271,12 +271,12 @@ public extension RecursiveNode {
 
  var previousIndex: Int? {
   guard self.offset > base.startIndex else { return nil }
-  return self.offset - 1
+  return base.index(self.offset, offsetBy: -1)
  }
 
  var nextIndex: Int? {
-  guard offset < base.endIndex else { return nil }
-  return self.offset + 1
+  guard offset < base.index(base.endIndex, offsetBy: -1) else { return nil }
+  return base.index(after: self.offset)
  }
 
  var next: Self? {
@@ -318,7 +318,10 @@ public extension RecursiveNode {
  }
 
  var nextStartIndex: Int? {
-  self.indices.index(start.index, offsetBy: 1, limitedBy: indices.endIndex)
+  self.indices.index(
+   start.index, offsetBy: 1, 
+   limitedBy: indices.index(indices.endIndex, offsetBy: -1)
+  )
  }
 
  var nextStart: Self? {
@@ -349,21 +352,21 @@ public extension RecursiveNode {
   try content(self)
  }
 
- @discardableResult
  /// Initialize a new start index with a base collection
+ @discardableResult
  func start(
   with base: Base, _ content: (Self) throws -> Value?
  ) rethrows -> Value? {
-  let projectedIndex = self.elements.endIndex
-  let projectedOffset = self.values.endIndex
   let projection: Self = .start(from: self)
+  let projectedIndex = projection.index
   self.values.append(base)
+  self.indices.insert([projection], at: projectedIndex)
 
   if let result = try content(projection) {
-   self.elements.insert(projection, at: projectedIndex)
    return result
   } else {
-   self.values.remove(at: projectedOffset)
+   self.values.remove(at: projectedIndex)
+   self.indices.remove(at: projectedIndex)
    return nil
   }
  }
