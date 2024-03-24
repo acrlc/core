@@ -21,8 +21,28 @@ public func withTask<Result>(
 
 @available(macOS 13, iOS 16, *)
 @inlinable
+@discardableResult
+public func withTask<A: Clock, Result>(
+ after duration: A.Duration, tolerance: A.Duration? = nil,
+ clock: A,
+ _ action: @escaping () async throws -> Result
+) async throws -> Result {
+ try await Task.sleep(for: duration, tolerance: tolerance, clock: clock)
+ return try await action()
+}
+
+@available(macOS 13, iOS 16, *)
+@inlinable
 public func sleep(for duration: Duration) async throws {
  try await Task.sleep(for: duration)
+}
+
+@available(macOS 13, iOS 16, *)
+@inlinable
+public func sleep<A: Clock>(
+ for duration: A.Duration, tolerance: A.Duration? = nil, clock: A
+) async throws {
+ try await Task.sleep(for: duration, tolerance: tolerance, clock: clock)
 }
 
 @inlinable
