@@ -37,8 +37,7 @@ public protocol ConstrainedValue {
 /// A recursive index that can access values and other indices to allow
 /// recursion on a base value
 public protocol IndexicalValue:
- Node, RecursiveValue, ReflectiveValue,
- ConstrainedValue, ExpressibleAsStart {
+ Node, RecursiveValue, ReflectiveValue, ConstrainedValue, ExpressibleAsStart {
  /// Refers to the type of index which is `Self`
  typealias Index = Self
  /// A base value for this index type
@@ -161,10 +160,7 @@ public extension IndexicalValue {
 }
 
 /// Indexical value with storage for rebasing elements
-
-// MARK: Default Implmentation
-// warning: expects a starting index that can be bitcast as Int.zero
-@frozen public struct RecursiveNode<
+@frozen public struct UnsafeRecursiveNode<
  Base: RangeReplaceableCollection & MutableCollection
 >: IndexicalValue where Base.Index == Int {
  // - MARK: Starting properties
@@ -180,14 +176,12 @@ public extension IndexicalValue {
   unsafeAddress {
    UnsafePointer(
     self._values.unsafelyUnwrapped
-     .assumingMemoryBound(to: Values.self)
-     .baseAddress.unsafelyUnwrapped
+     .assumingMemoryBound(to: Values.self).baseAddress.unsafelyUnwrapped
    )
   }
   nonmutating unsafeMutableAddress {
    self._values.unsafelyUnwrapped
-    .assumingMemoryBound(to: Values.self)
-    .baseAddress.unsafelyUnwrapped
+    .assumingMemoryBound(to: Values.self).baseAddress.unsafelyUnwrapped
   }
  }
 
@@ -197,14 +191,12 @@ public extension IndexicalValue {
   unsafeAddress {
    UnsafePointer(
     self._indices.unsafelyUnwrapped
-     .assumingMemoryBound(to: Indices.self)
-     .baseAddress.unsafelyUnwrapped
+     .assumingMemoryBound(to: Indices.self).baseAddress.unsafelyUnwrapped
    )
   }
   nonmutating unsafeMutableAddress {
    self._indices.unsafelyUnwrapped
-    .assumingMemoryBound(to: Indices.self)
-    .baseAddress.unsafelyUnwrapped
+    .assumingMemoryBound(to: Indices.self).baseAddress.unsafelyUnwrapped
   }
  }
 
@@ -234,7 +226,7 @@ public extension IndexicalValue {
  }
 }
 
-public extension RecursiveNode {
+public extension UnsafeRecursiveNode {
  /// The recursive limit of this index
  var limit: Base.Index { self.base.endIndex }
  /// The recursive range of this index
@@ -259,7 +251,7 @@ public extension RecursiveNode {
  }
 }
 
-public extension RecursiveNode {
+public extension UnsafeRecursiveNode {
  var start: Self {
   unsafeAddress {
    withUnsafePointer(to: self.elements[.zero]) { $0 }
@@ -319,7 +311,7 @@ public extension RecursiveNode {
 
  var nextStartIndex: Int? {
   self.indices.index(
-   start.index, offsetBy: 1, 
+   start.index, offsetBy: 1,
    limitedBy: indices.index(indices.endIndex, offsetBy: -1)
   )
  }
@@ -330,12 +322,11 @@ public extension RecursiveNode {
  }
 }
 
-public extension RecursiveNode {
+public extension UnsafeRecursiveNode {
  /// Start here
  static func bind(
   base: Base,
-  values: UnsafeMutablePointer<Values>,
-  indices: UnsafeMutablePointer<Indices>
+  values: UnsafeMutablePointer<Values>, indices: UnsafeMutablePointer<Indices>
  ) {
   values.pointee.append(base)
   indices.pointee.append([Self()])
@@ -411,10 +402,9 @@ public extension RecursiveNode {
 }
 
 import Foundation
-extension RecursiveNode: Sendable
+extension UnsafeRecursiveNode: @unchecked Sendable
  where Value: Sendable, Values.Index: Sendable {}
-extension RecursiveNode: Hashable {
- @_transparent
+extension UnsafeRecursiveNode: Hashable {
  public func hash(into hasher: inout Hasher) {
   hasher.combine(self._values?.baseAddress)
   hasher.combine(self._indices?.baseAddress)
