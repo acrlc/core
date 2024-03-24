@@ -1,4 +1,5 @@
 import Foundation
+import enum Core.SystemInfo
 
 public extension RangeReplaceableCollection where Index: Comparable {
  @inline(__always) mutating func dequeue(
@@ -7,7 +8,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async -> ()
  ) async where Element: Sendable {
   await withTaskGroup(of: Void.self) { group in
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    var count: Int = .zero
    while !isEmpty {
     while count < limit, !isEmpty {
@@ -31,7 +32,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
    #if os(WASI)
    let limit = limit ?? 4
    #else
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    #endif
    var offset = startIndex
    var count: Int = .zero
@@ -57,7 +58,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
    #if os(WASI)
    let limit = limit ?? 4
    #else
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    #endif
    var count: Int = .zero
    while !isEmpty {
@@ -82,7 +83,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
    #if os(WASI)
    let limit = limit ?? 4
    #else
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    #endif
    var offset = startIndex
    var count: Int = .zero
@@ -108,7 +109,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
    #if os(WASI)
    let limit = limit ?? 4
    #else
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    #endif
    var results: [Result] = .empty
    var count: Int = .zero
@@ -134,7 +135,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
    #if os(WASI)
    let limit = limit ?? 4
    #else
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    #endif
    var results: [Result] = .empty
    var offset = startIndex
@@ -161,7 +162,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
    #if os(WASI)
    let limit = limit ?? 4
    #else
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    #endif
    var results: [Result] = .empty
    var count: Int = .zero
@@ -187,7 +188,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
    #if os(WASI)
    let limit = limit ?? 4
    #else
-   let limit = limit ?? ProcessInfo.processInfo.processorCount
+   let limit = limit ?? SystemInfo.coreCount
    #endif
    var results: [Result] = .empty
    var offset = startIndex
