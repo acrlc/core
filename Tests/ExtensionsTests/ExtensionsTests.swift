@@ -44,3 +44,35 @@ final class TestTimerView: XCTestCase {
   }
  }
 }
+
+final class TestLosslessStringDuration: XCTestCase {
+ let assert: KeyValuePairs<String, Duration> = [
+  "1nanosecond": .nanoseconds(1),
+  "1microsecond": .microseconds(1),
+  "1millisecond": .milliseconds(1),
+  "1second": .nanoseconds(1_000_000_000),
+  "1second": .seconds(1),
+  "1minute": .minutes(1),
+  "1hour": .hours(1),
+  "1day": .hours(24),
+  "7days": .hours(24 * 7),
+  "356days": .days(356)
+ ]
+
+ lazy var labels = assert.map(\.0)
+
+ var options: XCTMeasureOptions {
+  let base = XCTMeasureOptions()
+  base.iterationCount = 111
+  return base
+ }
+
+ func test() throws {
+  for (label, duration) in assert {
+   try XCTAssertEqual(duration, XCTUnwrap(Duration(label)))
+  }
+  measure(options: options) {
+   for label in labels { _ = Duration(label).unsafelyUnwrapped }
+  }
+ }
+}
