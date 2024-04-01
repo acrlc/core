@@ -169,7 +169,8 @@ public extension IndexicalValue {
 
  public var index: Int = .zero
  public var offset: Values.Index = .zero
-
+ public var startIndex: Values.Index = .zero
+ 
  public var _values: UnsafeMutableRawBufferPointer?
 
  public var values: Values {
@@ -254,10 +255,10 @@ public extension UnsafeRecursiveNode {
 public extension UnsafeRecursiveNode {
  var start: Self {
   unsafeAddress {
-   withUnsafePointer(to: self.elements[.zero]) { $0 }
+   withUnsafePointer(to: self.elements[startIndex]) { $0 }
   }
   nonmutating unsafeMutableAddress {
-   withUnsafeMutablePointer(to: &self.elements[.zero]) { $0 }
+   withUnsafeMutablePointer(to: &self.elements[startIndex]) { $0 }
   }
  }
 
@@ -392,6 +393,7 @@ public extension UnsafeRecursiveNode {
   self._values = start._values
   self._indices = start._indices
   self.index = start.index
+  self.startIndex = start.offset
   // note: think about whether or not this is relevant
   if let previous {
    self.offset = previous.offset + 1
