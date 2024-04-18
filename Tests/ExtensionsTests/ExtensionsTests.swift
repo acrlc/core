@@ -22,26 +22,52 @@ final class TestTimerView: XCTestCase {
 
  lazy var durations = assert.map(\.1)
 
+ #if !(os(Linux) || os(Windows))
  var options: XCTMeasureOptions {
   let base = XCTMeasureOptions()
   base.iterationCount = 111
   return base
  }
+ #endif
 
  /// Test duration with the `formatted()` function
  func testDuration() {
-  for (label, duration) in assert { XCTAssertEqual(label, duration.formatted()) }
-  measure(options: options) {
-   for duration in durations { _ = duration.formatted() }
+  for (label, duration) in assert {
+   XCTAssertEqual(label, duration.formatted())
   }
+  #if os(Linux) || os(Windows)
+  measure {
+   for duration in durations {
+    _ = duration.formatted()
+   }
+  }
+  #else
+  measure(options: options) {
+   for duration in durations {
+    _ = duration.formatted()
+   }
+  }
+  #endif
  }
 
  /// Test duration with the `timerView` property
  func testTimerView() {
-  for (label, duration) in assert { XCTAssertEqual(label, duration.timerView) }
-  measure(options: options) {
-   for duration in durations { _ = duration.timerView }
+  for (label, duration) in assert {
+   XCTAssertEqual(label, duration.timerView)
   }
+  #if os(Linux) || os(Windows)
+  measure {
+   for duration in durations {
+    _ = duration.timerView
+   }
+  }
+  #else
+  measure(options: options) {
+   for duration in durations {
+    _ = duration.timerView
+   }
+  }
+  #endif
  }
 }
 
@@ -61,18 +87,31 @@ final class TestLosslessStringDuration: XCTestCase {
 
  lazy var labels = assert.map(\.0)
 
+ #if !(os(Linux) || os(Windows))
  var options: XCTMeasureOptions {
   let base = XCTMeasureOptions()
   base.iterationCount = 111
   return base
  }
+ #endif
 
  func test() throws {
   for (label, duration) in assert {
    try XCTAssertEqual(duration, XCTUnwrap(Duration(label)))
   }
-  measure(options: options) {
-   for label in labels { _ = Duration(label).unsafelyUnwrapped }
+
+  #if os(Linux) || os(Windows)
+  measure {
+   for label in labels {
+    _ = Duration(label).unsafelyUnwrapped
+   }
   }
+  #else
+  measure(options: options) {
+   for label in labels {
+    _ = Duration(label).unsafelyUnwrapped
+   }
+  }
+  #endif
  }
 }

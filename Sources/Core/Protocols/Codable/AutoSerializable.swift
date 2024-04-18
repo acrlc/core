@@ -1,4 +1,8 @@
+#if canImport(Combine)
 import Combine
+#elseif os(WASI) || os(Windows) || os(Linux)
+import OpenCombine
+#endif
 
 /// An object that can be converted into a dictionary from data
 public protocol Serializable: AutoEncodable {
