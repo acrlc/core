@@ -88,8 +88,9 @@ public extension IndexicalElement {
  func reverse(
   _ perform: @escaping (Index) throws -> ()
  ) rethrows {
-  while let previous {
+  if let previous {
    try perform(previous)
+   try previous.reverse(perform)
   }
  }
 
@@ -97,8 +98,9 @@ public extension IndexicalElement {
  func reverse(
   _ perform: @escaping (Index) async throws -> ()
  ) async rethrows {
-  while let previous {
+  if let previous {
    try await perform(previous)
+   try await previous.reverse(perform)
   }
  }
 }
@@ -148,13 +150,13 @@ public struct UnsafeRecursiveNode<
  public var checkedElement: Element? {
   get {
    // this can happen when an index is escaped and the value no longer exists
-   guard base.indices.contains(offset) else {
+   guard offset < base.endIndex else {
     return nil
    }
    return base[offset]
   }
   nonmutating set {
-   guard let newValue, base.indices.contains(offset) else {
+   guard let newValue, offset < base.endIndex else {
     return
    }
    base[offset] = newValue
@@ -180,10 +182,7 @@ public extension UnsafeRecursiveNode {
  func contains(
   where condition: @escaping (Element) throws -> Bool
  ) rethrows -> Bool {
-  guard let range else {
-   return try condition(element)
-  }
-  for index in range where try condition(base[index]) {
+  for element in base[self.offset...] where try condition(element) {
    return true
   }
   return false
@@ -193,15 +192,8 @@ public extension UnsafeRecursiveNode {
  func first(
   where condition: @escaping (Element) throws -> Bool
  ) rethrows -> Element? {
-  guard let range else {
-   return nil
-  }
-  for index in range {
-   let value = base[index]
-   guard try condition(value) else {
-    continue
-   }
-   return value
+  for index in indices[self.index...] where try condition(index.element) {
+   return index.element
   }
   return nil
  }
@@ -210,15 +202,8 @@ public extension UnsafeRecursiveNode {
  func index(
   where condition: @escaping (Element) throws -> Bool
  ) rethrows -> Index? {
-  guard let range else {
-   return nil
-  }
-  for index in range {
-   let value = base[index]
-   guard try condition(value) else {
-    continue
-   }
-   return indices[index]
+  for index in indices[self.index...] where try condition(index.element) {
+   return index
   }
   return nil
  }
@@ -260,7 +245,7 @@ public extension UnsafeRecursiveNode {
   guard index < indices.endIndex else {
    return nil
   }
-  return index + 1
+  return indices.index(index, offsetBy: 1, limitedBy: indices.endIndex - 1)
  }
 
  var next: Self? {
@@ -286,10 +271,11 @@ public extension UnsafeRecursiveNode {
  }
 
  var endIndex: Int? {
-  guard let nextStartIndex else {
-   return indices.endIndex
+  guard indices.count > 1, index != indices.endIndex else { return nil }
+  if let nextStartIndex {
+   return indices.index(before: nextStartIndex)
   }
-  return nextStartIndex
+  return indices.index(before: indices.endIndex)
  }
 
  var end: Self? {
