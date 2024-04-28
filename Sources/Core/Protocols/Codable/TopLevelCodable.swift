@@ -1,7 +1,10 @@
 import Foundation
+#if canImport(Combine)
+import Combine
+#else
+import OpenCombine
+#endif
 #if os(WASI) || os(Windows)
-import protocol OpenCombine.TopLevelDecoder
-import protocol OpenCombine.TopLevelEncoder
 extension JSONEncoder: TopLevelEncoder {}
 extension JSONDecoder: TopLevelDecoder {}
 #endif
@@ -45,7 +48,8 @@ public extension JSONDecodable {
 }
 
 #if !os(WASI)
-public protocol PlistCodable: PlistEncodable & PlistDecodable & AutoCodable {}
+public protocol PlistCodable: PlistEncodable & PlistDecodable & AutoCodable
+ where AutoEncoder.Output == Data {}
 public protocol PlistDecodable: AutoDecodable {}
 public protocol PlistEncodable: AutoEncodable {}
 

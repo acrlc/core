@@ -8,7 +8,7 @@ import OpenCombine
 
 /// An object that conforms to `AutoDecodable` & `AutoEncodable`.
 public protocol AutoCodable: AutoDecodable & AutoEncodable
- where AutoDecoder.Input == Data, AutoDecoder.Input == AutoEncoder.Output {
+ where AutoDecoder.Input == AutoEncoder.Output {
  static var decoder: AutoDecoder { get }
  static var encoder: AutoEncoder { get }
 }
@@ -32,7 +32,7 @@ public extension AutoEncodable {
   try Self.encoder.encode(self)
  }
 
- var data: AutoEncoder.Output? { try? self.encoded() }
+ var data: AutoEncoder.Output? { try? encoded() }
 }
 
 extension Optional: AutoEncodable where Wrapped: AutoEncodable {
@@ -53,9 +53,10 @@ public extension AutoDecodable {
  init(_ input: AutoDecoder.Input) throws {
   self = try Self.decoder.decode(Self.self, from: input)
  }
+}
 
- init(url: URL, options: Data.ReadingOptions = []) throws
-  where AutoDecoder.Input == Data {
+public extension AutoDecodable where AutoDecoder.Input == Data {
+ init(url: URL, options: Data.ReadingOptions = []) throws {
   let data = try Data(contentsOf: url, options: options)
   self = try Self.decoder.decode(Self.self, from: data)
  }
@@ -78,7 +79,7 @@ public extension AutoCodable {
  var dictionary: [String: Any] {
   Dictionary(
    uniqueKeysWithValues:
-   self.mirror.children.map { ($0.label!, $0.value) }
+   mirror.children.map { ($0.label!, $0.value) }
   )
  }
 }
@@ -89,7 +90,7 @@ public extension TopLevelDecoder where Input == Data {
   options: Data.ReadingOptions = .empty,
   _ type: A.Type
  ) throws -> A {
-  try self.decode(type, from: Data(contentsOf: url, options: options))
+  try decode(type, from: Data(contentsOf: url, options: options))
  }
 }
 
@@ -99,7 +100,9 @@ public struct ArrayEncoder<A: AutoEncodable>: TopLevelEncoder
  where A.AutoEncoder.Output == Data {
  public init() {}
  public func encode(_ value: some Encodable) throws -> Data {
-  guard let values = value as? [A] else { fatalError() }
+  guard let values = value as? [A] else {
+   fatalError()
+  }
   return try Data(
    values.flatMap { try A.encoder.encode($0).map { $0 } }
   )
@@ -135,7 +138,9 @@ extension Array: AutoDecodable
  public static var decoder: ArrayDecoder<Element> { ArrayDecoder<Element>() }
 }
 
-extension Array: AutoCodable where Element: AutoCodable {}
+extension Array: AutoCodable
+ where Element: AutoCodable,
+ Element.AutoEncoder.Output == Data, Element.AutoDecoder.Input == Data {}
 
 // MARK: Self Conformances
 // TODO: Offer more nuanced control over encoders / decoders
