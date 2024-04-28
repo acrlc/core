@@ -1,4 +1,4 @@
-public struct EmptyID: Hashable, CustomStringConvertible, ExpressibleAsEmpty {
+public struct EmptyID: Sendable, Hashable, CustomStringConvertible, ExpressibleAsEmpty {
  public static let empty = Self()
  public var isEmpty: Bool { true }
  public var placeholder: String?
