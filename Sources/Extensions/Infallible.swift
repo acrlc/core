@@ -1,10 +1,12 @@
 import protocol Core.Infallible
 extension Optional where Wrapped: Infallible {
- @inlinable func unwrap(_ other: Wrapped) -> Wrapped {
+ @inlinable
+ func unwrap(_ other: Wrapped) -> Wrapped {
   self == nil ? .defaultValue : other
  }
 
- @inlinable func unwrap(_ other: @escaping (Wrapped) -> (Wrapped)) -> Wrapped {
+ @inlinable
+ func unwrap(_ other: @escaping (Wrapped) -> (Wrapped)) -> Wrapped {
   self == nil ? .defaultValue : other(self!)
  }
 }
@@ -12,18 +14,25 @@ extension Optional where Wrapped: Infallible {
 public extension Infallible where Self: Equatable {
  @inlinable
  /// An assertion that throws if value is default
- @discardableResult func throwing(_ error: Error? = .none) throws -> Self {
+ @discardableResult
+ func throwing(
+  error: Error? = nil, file: String = #file, line: Int = #line
+ ) throws -> Self {
   guard self != .defaultValue else {
-   throw error ?? UnwrapError.reason("Expected condition wasn't met")
+   throw error ?? UnwrapError.reason(
+    "Expected condition wasn't met", file: file, line: line
+   )
   }
   return self
  }
 
  @inlinable
  @discardableResult
- func throwing(reason: String) throws -> Self {
+ func throwing(
+  reason: String, file: String = #file, line: Int = #line
+ ) throws -> Self {
   guard self != .defaultValue else {
-   throw UnwrapError.reason(reason)
+   throw UnwrapError.reason(reason, file: file, line: line)
   }
   return self
  }
@@ -32,8 +41,11 @@ public extension Infallible where Self: Equatable {
 import protocol Core.ExpressibleAsEmpty
 public extension ExpressibleAsEmpty where Self: Equatable {
  @inlinable
- @discardableResult func `throws`<A: Error>(_ error: A) throws -> A {
-  guard notEmpty else { throw error }
+ @discardableResult
+ func `throws`<A: Error>(_ error: A) throws -> A {
+  guard notEmpty else {
+   throw error
+  }
   return error
  }
 }
@@ -44,7 +56,9 @@ public extension Collection {
  func `throws`<A: Error>(_ range: Range<Int>, _ lower: A, _ upper: A) throws {
   let count = count
   guard count >= range.lowerBound else {
-   guard count <= range.upperBound else { throw upper }
+   guard count <= range.upperBound else {
+    throw upper
+   }
    throw lower
   }
  }
@@ -57,7 +71,9 @@ public extension Range {
   _ bound: Bound, _ lower: A, _ upper: A
  ) throws -> Bool {
   guard bound >= lowerBound else {
-   guard bound <= upperBound else { throw upper }
+   guard bound <= upperBound else {
+    throw upper
+   }
    throw lower
   }
   return true
