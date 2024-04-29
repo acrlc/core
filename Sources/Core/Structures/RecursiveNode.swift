@@ -315,12 +315,14 @@ public extension UnsafeRecursiveNode {
   indicesPointer.pointee[0]._indices = indicesPointer
  }
 
+ @_disfavoredOverload
  @discardableResult
  /// Start indexing from the current index
  func step(_ content: (Self) throws -> Element?) rethrows -> Element? {
   try content(self)
  }
 
+ @_disfavoredOverload
  /// Add base values to the current index
  func rebase(_ elements: Base, _ content: (Self) throws -> Element?) rethrows {
   for element in elements {
@@ -337,6 +339,35 @@ public extension UnsafeRecursiveNode {
     indices.insert(projection, at: projectedIndex)
    } else if projectedOffset < base.endIndex {
     base.remove(at: projectedOffset)
+   }
+  }
+  
+  @discardableResult
+  /// Start indexing from the current index
+  func step(_ content: (Self) async throws -> Element?) async rethrows
+  -> Element? {
+   try await content(self)
+  }
+  
+  /// Add base values to the current index
+  func rebase(
+   _ elements: Base,
+   _ content: (Self) async throws -> Element?
+  ) async rethrows {
+   for element in elements {
+    let projectedIndex = indices.endIndex
+    let projectedOffset = base.endIndex
+    base.append(element)
+    
+    var projection: Self = .next(with: self)
+    projection.index = projectedIndex
+    projection.offset = projectedOffset
+    
+    if try await content(projection) != nil {
+     indices.insert(projection, at: projectedIndex)
+    } else if projectedOffset < base.endIndex {
+     base.remove(at: projectedOffset)
+    }
    }
   }
  }
