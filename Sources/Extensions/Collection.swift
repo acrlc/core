@@ -1,12 +1,12 @@
 import Foundation
 import enum Core.SystemInfo
 
-public extension RangeReplaceableCollection where Index: Comparable {
+public extension Collection where Index: Comparable {
  @inline(__always) mutating func dequeue(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async -> ()
- ) async where Element: Sendable {
+ ) async where Element: Sendable, Self == Self.SubSequence {
   await withTaskGroup(of: Void.self) { group in
    let limit = limit ?? SystemInfo.coreCount
    var count: Int = .zero
@@ -53,7 +53,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async throws -> ()
- ) async rethrows where Element: Sendable {
+ ) async rethrows where Element: Sendable, Self == Self.SubSequence {
   try await withThrowingTaskGroup(of: Void.self) { group in
    #if os(WASI)
    let limit = limit ?? 4
@@ -104,7 +104,7 @@ public extension RangeReplaceableCollection where Index: Comparable {
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async -> Result
- ) async -> [Result] where Element: Sendable {
+ ) async -> [Result] where Element: Sendable, Self == Self.SubSequence {
   await withTaskGroup(of: Result.self, returning: [Result].self) { group in
    #if os(WASI)
    let limit = limit ?? 4
@@ -157,7 +157,8 @@ public extension RangeReplaceableCollection where Index: Comparable {
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async throws -> Result
- ) async rethrows -> [Result] where Result: Sendable, Element: Sendable {
+ ) async rethrows -> [Result] 
+ where Result: Sendable, Element: Sendable, Self == Self.SubSequence {
   try await withThrowingTaskGroup(of: Result.self, returning: [Result].self) { group in
    #if os(WASI)
    let limit = limit ?? 4
