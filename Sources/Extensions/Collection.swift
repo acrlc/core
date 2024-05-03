@@ -1,8 +1,9 @@
-import Foundation
 import enum Core.SystemInfo
+import Foundation
 
 public extension Collection where Index: Comparable {
- @inline(__always) mutating func dequeue(
+ @inline(__always)
+ mutating func dequeue(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async -> ()
@@ -23,7 +24,8 @@ public extension Collection where Index: Comparable {
  }
 
  /// Perform a task queue, limiting to a certain count or number of processors
- @inline(__always) func queue(
+ @inline(__always)
+ func queue(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async -> ()
@@ -49,7 +51,35 @@ public extension Collection where Index: Comparable {
   }
  }
 
- @inline(__always) mutating func throwingDequeue(
+ /// Perform a task queue, limiting to a certain count or number of processors
+ @inline(__always)
+ func queue(
+  limit: Int? = nil,
+  priority: TaskPriority = .medium,
+  _ task: @Sendable @escaping () async -> ()
+ ) async where Element: BinaryInteger {
+  await withTaskGroup(of: Void.self) { group in
+   #if os(WASI)
+   let limit = limit ?? 4
+   #else
+   let limit = limit ?? SystemInfo.coreCount
+   #endif
+   var offset = startIndex
+   var count: Int = .zero
+   while offset < endIndex {
+    while count < limit, offset < endIndex {
+     count += 1
+     offset = index(after: offset)
+     group.addTask(priority: priority) { await task() }
+    }
+    await group.next()
+    count -= 1
+   }
+  }
+ }
+
+ @inline(__always)
+ mutating func throwingDequeue(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async throws -> ()
@@ -73,8 +103,10 @@ public extension Collection where Index: Comparable {
   }
  }
 
- /// Perform a throwing task queue, limiting to a certain count or number of processors
- @inline(__always) func throwingQueue(
+ /// Perform a throwing task queue, limiting to a certain count or number of
+ /// processors
+ @inline(__always)
+ func throwingQueue(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async throws -> ()
@@ -100,7 +132,36 @@ public extension Collection where Index: Comparable {
   }
  }
 
- @discardableResult @inline(__always) mutating func dequeueResults<Result>(
+ /// Perform a throwing task queue, limiting to a certain count or number of
+ /// processors
+ @inline(__always)
+ func throwingQueue(
+  limit: Int? = nil,
+  priority: TaskPriority = .medium,
+  _ task: @Sendable @escaping () async throws -> ()
+ ) async rethrows where Element: BinaryInteger {
+  try await withThrowingTaskGroup(of: Void.self) { group in
+   #if os(WASI)
+   let limit = limit ?? 4
+   #else
+   let limit = limit ?? SystemInfo.coreCount
+   #endif
+   var offset = startIndex
+   var count: Int = .zero
+   while offset < endIndex {
+    while count < limit, offset < endIndex {
+     count += 1
+     offset = index(after: offset)
+     group.addTask(priority: priority) { try await task() }
+    }
+    try await group.next()
+    count -= 1
+   }
+  }
+ }
+
+ @discardableResult @inline(__always)
+ mutating func dequeueResults<Result>(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async -> Result
@@ -119,14 +180,18 @@ public extension Collection where Index: Comparable {
      let element = self.removeFirst()
      group.addTask(priority: priority) { await task(element) }
     }
-    if let result = await group.next() { results.append(result); count -= 1 }
+    if let result = await group.next() {
+     results.append(result)
+     count -= 1
+    }
    }
    return results
   }
  }
 
  /// Perform a task queue, returning the accumulated results of the closure
- @inline(__always) @discardableResult func queueResults<Result>(
+ @inline(__always) @discardableResult
+ func queueResults<Result>(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async -> Result
@@ -147,19 +212,28 @@ public extension Collection where Index: Comparable {
      offset = index(after: offset)
      group.addTask(priority: priority) { await task(element) }
     }
-    if let result = await group.next() { results.append(result); count -= 1 }
+    if let result = await group.next() {
+     results.append(result)
+     count -= 1
+    }
    }
    return results
   }
  }
 
- @discardableResult @inline(__always) mutating func dequeueThrowingResults<Result>(
+ @discardableResult @inline(__always)
+ mutating func dequeueThrowingResults<
+  Result
+ >(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async throws -> Result
- ) async rethrows -> [Result] 
- where Result: Sendable, Element: Sendable, Self == Self.SubSequence {
-  try await withThrowingTaskGroup(of: Result.self, returning: [Result].self) { group in
+ ) async rethrows -> [Result]
+  where Result: Sendable, Element: Sendable, Self == Self.SubSequence {
+  try await withThrowingTaskGroup(
+   of: Result.self,
+   returning: [Result].self
+  ) { group in
    #if os(WASI)
    let limit = limit ?? 4
    #else
@@ -173,19 +247,27 @@ public extension Collection where Index: Comparable {
      let element = self.removeFirst()
      group.addTask(priority: priority) { try await task(element) }
     }
-    if let result = try await group.next() { results.append(result); count -= 1 }
+    if let result = try await group.next() {
+     results.append(result)
+     count -= 1
+    }
    }
    return results
   }
  }
 
- /// Perform a throwing task queue, returning the accumulated results of the closure
- @inline(__always) @discardableResult func queueThrowingResults<Result>(
+ /// Perform a throwing task queue, returning the accumulated results of the
+ /// closure
+ @inline(__always) @discardableResult
+ func queueThrowingResults<Result>(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async throws -> Result
  ) async rethrows -> [Result] where Result: Sendable, Element: Sendable {
-  try await withThrowingTaskGroup(of: Result.self, returning: [Result].self) { group in
+  try await withThrowingTaskGroup(
+   of: Result.self,
+   returning: [Result].self
+  ) { group in
    #if os(WASI)
    let limit = limit ?? 4
    #else
@@ -201,7 +283,10 @@ public extension Collection where Index: Comparable {
      offset = index(after: offset)
      group.addTask(priority: priority) { try await task(element) }
     }
-    if let result = try await group.next() { results.append(result); count -= 1 }
+    if let result = try await group.next() {
+     results.append(result)
+     count -= 1
+    }
    }
    return results
   }
@@ -225,7 +310,8 @@ public extension RandomAccessCollection {
 }
 
 public extension Array where Element: Hashable {
- @discardableResult mutating func removeDuplicates() -> Self {
+ @discardableResult
+ mutating func removeDuplicates() -> Self {
   self = unique()
   return self
  }
@@ -252,22 +338,25 @@ public extension Array where Element: Equatable {
   return expression
  }
 
- @discardableResult mutating func removeDuplicates() -> Self {
-  self = self.unique()
+ @discardableResult
+ mutating func removeDuplicates() -> Self {
+  self = unique()
   return self
  }
 }
 
 // MARK: Unique Operations
 public extension Sequence {
- func map(where condition: @escaping (Element) throws -> Bool) rethrows -> [Element]? {
-  try self.compactMap { element in
+ func map(where condition: @escaping (Element) throws -> Bool) rethrows
+  -> [Element]? {
+  try compactMap { element in
    try condition(element) ? element : nil
   }.wrapped
  }
 
- func reduce(where condition: @escaping (Element) throws -> Bool) rethrows -> [Element] {
-  try self.reduce([Element]()) {
+ func reduce(where condition: @escaping (Element) throws -> Bool) rethrows
+  -> [Element] {
+  try reduce([Element]()) {
    if let last = $0.last, try condition(last), try condition($1) {
     return $0
    }
@@ -278,7 +367,7 @@ public extension Sequence {
 
 public extension Sequence where Element: Equatable {
  func reduce(element: Element) -> [Element] {
-  self.reduce([Element]()) {
+  reduce([Element]()) {
    if let last = $0.last, last == element, $1 == element {
     return $0
    }
@@ -289,7 +378,8 @@ public extension Sequence where Element: Equatable {
 
 // using reduce to map elements with a given range
 public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
- @inlinable func map<Element>(
+ @inlinable
+ func map<Element>(
   _ element: @escaping () throws -> Element?
  ) rethrows -> [Element] {
   try reduce(into: [Element]()) { results, _ in
@@ -312,8 +402,10 @@ public extension RangeReplaceableCollection where Element: Equatable {
 
   for index in indices {
    let projectedIndex = self.index(index, offsetBy: inserted)
-   guard condition(self[projectedIndex]) else { continue }
-   self.insert(separator, at: projectedIndex)
+   guard condition(self[projectedIndex]) else {
+    continue
+   }
+   insert(separator, at: projectedIndex)
    // if we insert one, we create an offset that must be compensate
    inserted += 1
   }
@@ -348,7 +440,7 @@ public extension RangeReplaceableCollection where Element: Equatable {
   // the first condition must be checked and replaced
   if condition(first) {
    remove(at: startIndex)
-   try self.insert(transforming(first), at: startIndex)
+   try insert(transforming(first), at: startIndex)
   }
 
   let indices = indices.dropFirst().dropLast()
@@ -357,11 +449,13 @@ public extension RangeReplaceableCollection where Element: Equatable {
   for index in indices {
    let projectedIndex = self.index(index, offsetBy: inserted)
    let element = self[projectedIndex]
-   guard condition(element) else { continue }
+   guard condition(element) else {
+    continue
+   }
 
    remove(at: index)
-   try self.insert(transforming(element), at: index)
-   self.insert(separator, at: projectedIndex)
+   try insert(transforming(element), at: index)
+   insert(separator, at: projectedIndex)
 
    inserted += 1
   }
@@ -408,10 +502,13 @@ public extension Dictionary {
 
 public extension RangeReplaceableCollection where Element: Equatable {
  // an attempt to wrap a collection given a delimiter and limit
- @inlinable func wrapping(
+ @inlinable
+ func wrapping(
   to count: Int, delimiter: Element
  ) -> [SubSequence] {
-  guard self.count > count else { return [self[startIndex ..< endIndex]] }
+  guard self.count > count else {
+   return [self[startIndex ..< endIndex]]
+  }
   var elements = [SubSequence]()
   var counted = 0
   var lastIndex = startIndex
@@ -438,7 +535,8 @@ public extension RangeReplaceableCollection where Element: Equatable {
 
 public extension RangeReplaceableCollection {
  /// Remove while the predicate is true and return the subsequence
- @inlinable @discardableResult mutating func remove(
+ @inlinable @discardableResult
+ mutating func remove(
   while predicate: (Element) throws -> Bool
  ) rethrows -> Self {
   if count == 1 {
@@ -449,7 +547,7 @@ public extension RangeReplaceableCollection {
     return .init()
    }
   } else {
-   if let endIndex = try self.firstIndex(where: { try !predicate($0) }) {
+   if let endIndex = try firstIndex(where: { try !predicate($0) }) {
     defer { self.removeSubrange(startIndex ..< endIndex) }
     return Self(self[startIndex ..< endIndex])
    } else {
@@ -459,7 +557,8 @@ public extension RangeReplaceableCollection {
  }
 
  /// Removes and returns all elements matching `condition`
- @inlinable mutating func drop(
+ @inlinable
+ mutating func drop(
   where condition: @escaping (Element) throws -> Bool
  ) rethrows -> Self {
   let copy = self
@@ -473,7 +572,8 @@ public extension RangeReplaceableCollection {
  }
 
  // Removes all elements matching the predicate and returns the collection
- @inlinable func removingAll(
+ @inlinable
+ func removingAll(
   where predicate: @escaping (Element) throws -> Bool
  ) rethrows -> Self {
   var `self` = self
@@ -487,7 +587,8 @@ extension RangeReplaceableCollection where Element: Equatable {}
 public extension RangeReplaceableCollection where Element: Equatable {
  /// Groups subsequences of continous elements matching `condition`,
  /// ommiting the other elements and keeping indexes
- @inlinable func grouping(
+ @inlinable
+ func grouping(
   where condition: @escaping (Element) throws -> Bool
  ) rethrows -> [SubSequence] {
   var subsequences = [SubSequence]()
@@ -509,14 +610,18 @@ public extension RangeReplaceableCollection where Element: Equatable {
 
  // Removes single outside elements or returns and empty subsequence if
  // the count is less than three
- @inlinable var bracketsRemoved: SubSequence {
-  guard count > 2 else { return SubSequence() }
+ @inlinable
+ var bracketsRemoved: SubSequence {
+  guard count > 2 else {
+   return SubSequence()
+  }
   return self[index(after: startIndex) ..< index(endIndex, offsetBy: -1)]
  }
 }
 
 public extension Collection where Element: Equatable {
- @inlinable func count(for element: Element) -> Int {
+ @inlinable
+ func count(for element: Element) -> Int {
   reduce(0) { $1 == element ? $0 + 1 : $0 }
  }
 
@@ -527,27 +632,31 @@ public extension Collection where Element: Equatable {
   split(whereSeparator: { $0 != element }).removingAll(where: { $0.count == 1 })
  }
 
- @inlinable func separating(
+ @inlinable
+ func separating(
   where condition: (Element) throws -> Bool
  ) rethrows -> [SubSequence] {
   try split(whereSeparator: condition)
  }
 
- @inlinable func count(
+ @inlinable
+ func count(
   where condition: @escaping (Element) throws -> Bool
  ) rethrows -> Int {
   try reduce(0) { try condition($1) ? $0 + 1 : $0 }
  }
 
- @inlinable func isRecursive(for element: Element) -> Bool {
-  self.count(for: element).isMultiple(of: 2)
+ @inlinable
+ func isRecursive(for element: Element) -> Bool {
+  count(for: element).isMultiple(of: 2)
  }
 }
 
 public extension RangeReplaceableCollection {
  @inlinable
  @discardableResult
- /// Removes elements from the collection if result isn't `nil` and returns all results
+ /// Removes elements from the collection if result isn't `nil` and returns all
+ /// results
  /// Like compact map but removes the original element from the collection
  mutating func invert<Result>(
   _ result: @escaping (Element) throws -> Result?
@@ -559,7 +668,7 @@ public extension RangeReplaceableCollection {
   for element in self {
    if let newValue = try result(element) {
     elements.append(newValue)
-    self.remove(at: index(offset, offsetBy: -removed))
+    remove(at: index(offset, offsetBy: -removed))
     removed += 1
    }
    count += 1
@@ -581,19 +690,24 @@ public extension RangeReplaceableCollection {
 }
 
 public extension Collection {
- @inlinable var range: Range<Index> { startIndex ..< endIndex }
+ @inlinable
+ var range: Range<Index> { startIndex ..< endIndex }
 }
 
 // MARK: - Matching
 public extension Collection where Element: Equatable {
  @_disfavoredOverload
  func fuzzyMatch(_ needle: Self) -> Bool {
-  if needle.isEmpty { return true }
+  if needle.isEmpty {
+   return true
+  }
   var remainder = needle[...]
   for element in self {
    if element == remainder[remainder.startIndex] {
     remainder.removeFirst()
-    if remainder.isEmpty { return true }
+    if remainder.isEmpty {
+     return true
+    }
    }
   }
   return false
@@ -601,7 +715,9 @@ public extension Collection where Element: Equatable {
 
  @_disfavoredOverload
  func fuzzyMatch(_ needle: Self) -> [Index]? {
-  if needle.isEmpty { return [] }
+  if needle.isEmpty {
+   return []
+  }
   var ixs: [Index] = []
   var remainder = needle[...]
   for idx in indices {
@@ -609,7 +725,9 @@ public extension Collection where Element: Equatable {
    if element == remainder[remainder.startIndex] {
     ixs.append(idx)
     remainder.removeFirst()
-    if remainder.isEmpty { return ixs }
+    if remainder.isEmpty {
+     return ixs
+    }
    }
   }
   return nil
@@ -622,20 +740,24 @@ public extension Collection where Element: Equatable {
  // or the balanced subsequence
  func `break`(from lhs: Element, to rhs: Element) -> SubSequence? {
   // requirements
-  guard self.count > 1 else {
+  guard count > 1 else {
    return nil
   }
-  guard let lowerBound = self.firstIndex(of: lhs) else {
+  guard let lowerBound = firstIndex(of: lhs) else {
    return nil
   }
-  var cursor: Index = self.index(after: lowerBound)
+  var cursor: Index = index(after: lowerBound)
   var `break`: Index?
   while cursor < endIndex {
    let character = self[cursor]
    let subdata = self[lowerBound ..< cursor]
-   cursor = self.index(after: cursor)
-   if character == rhs || character == lhs { `break` = cursor }
-   guard subdata.count(for: lhs) == subdata.count(for: rhs) else { continue }
+   cursor = index(after: cursor)
+   if character == rhs || character == lhs {
+    `break` = cursor
+   }
+   guard subdata.count(for: lhs) == subdata.count(for: rhs) else {
+    continue
+   }
    break
   }
   return self[lowerBound ..< (`break` ?? cursor)]
@@ -646,7 +768,9 @@ public extension Collection {
  @inlinable
  func element(after index: Index) -> Element? {
   let nextIndex = self.index(after: index)
-  guard nextIndex < endIndex else { return nil }
+  guard nextIndex < endIndex else {
+   return nil
+  }
   return self[nextIndex]
  }
 }
