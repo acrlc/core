@@ -23,6 +23,26 @@ public extension Collection where Index: Comparable {
   }
  }
 
+ mutating func dequeue(
+  limit: Int? = nil,
+  priority: TaskPriority = .medium,
+  _ task: @Sendable @escaping (Element) async -> ()
+ ) async where Element: Sendable, Self: RangeReplaceableCollection {
+  await withTaskGroup(of: Void.self) { group in
+   let limit = limit ?? SystemInfo.coreCount
+   var count: Int = .zero
+   while !isEmpty {
+    while count < limit, !isEmpty {
+     count += 1
+     let element = self.removeFirst()
+     group.addTask(priority: priority) { await task(element) }
+    }
+    await group.next()
+    count -= 1
+   }
+  }
+ }
+
  /// Perform a task queue, limiting to a certain count or number of processors
  @inline(__always)
  func queue(
@@ -84,6 +104,31 @@ public extension Collection where Index: Comparable {
   priority: TaskPriority = .medium,
   _ task: @Sendable @escaping (Element) async throws -> ()
  ) async rethrows where Element: Sendable, Self == Self.SubSequence {
+  try await withThrowingTaskGroup(of: Void.self) { group in
+   #if os(WASI)
+   let limit = limit ?? 4
+   #else
+   let limit = limit ?? SystemInfo.coreCount
+   #endif
+   var count: Int = .zero
+   while !isEmpty {
+    while count < limit, !isEmpty {
+     count += 1
+     let element = self.removeFirst()
+     group.addTask(priority: priority) { try await task(element) }
+    }
+    try await group.next()
+    count -= 1
+   }
+  }
+ }
+
+ @inline(__always)
+ mutating func throwingDequeue(
+  limit: Int? = nil,
+  priority: TaskPriority = .medium,
+  _ task: @Sendable @escaping (Element) async throws -> ()
+ ) async rethrows where Element: Sendable, Self: RangeReplaceableCollection {
   try await withThrowingTaskGroup(of: Void.self) { group in
    #if os(WASI)
    let limit = limit ?? 4
@@ -189,6 +234,35 @@ public extension Collection where Index: Comparable {
   }
  }
 
+ @discardableResult @inline(__always)
+ mutating func dequeueResults<Result>(
+  limit: Int? = nil,
+  priority: TaskPriority = .medium,
+  _ task: @Sendable @escaping (Element) async -> Result
+ ) async -> [Result] where Element: Sendable, Self: RangeReplaceableCollection {
+  await withTaskGroup(of: Result.self, returning: [Result].self) { group in
+   #if os(WASI)
+   let limit = limit ?? 4
+   #else
+   let limit = limit ?? SystemInfo.coreCount
+   #endif
+   var results: [Result] = .empty
+   var count: Int = .zero
+   while !isEmpty {
+    while count < limit, !isEmpty {
+     count += 1
+     let element = self.removeFirst()
+     group.addTask(priority: priority) { await task(element) }
+    }
+    if let result = await group.next() {
+     results.append(result)
+     count -= 1
+    }
+   }
+   return results
+  }
+ }
+
  /// Perform a task queue, returning the accumulated results of the closure
  @inline(__always) @discardableResult
  func queueResults<Result>(
@@ -230,6 +304,41 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async throws -> Result
  ) async rethrows -> [Result]
   where Result: Sendable, Element: Sendable, Self == Self.SubSequence {
+  try await withThrowingTaskGroup(
+   of: Result.self,
+   returning: [Result].self
+  ) { group in
+   #if os(WASI)
+   let limit = limit ?? 4
+   #else
+   let limit = limit ?? SystemInfo.coreCount
+   #endif
+   var results: [Result] = .empty
+   var count: Int = .zero
+   while !isEmpty {
+    while count < limit, !isEmpty {
+     count += 1
+     let element = self.removeFirst()
+     group.addTask(priority: priority) { try await task(element) }
+    }
+    if let result = try await group.next() {
+     results.append(result)
+     count -= 1
+    }
+   }
+   return results
+  }
+ }
+
+ @discardableResult @inline(__always)
+ mutating func dequeueThrowingResults<
+  Result
+ >(
+  limit: Int? = nil,
+  priority: TaskPriority = .medium,
+  _ task: @Sendable @escaping (Element) async throws -> Result
+ ) async rethrows -> [Result]
+  where Result: Sendable, Element: Sendable, Self: RangeReplaceableCollection {
   try await withThrowingTaskGroup(
    of: Result.self,
    returning: [Result].self
