@@ -1,21 +1,25 @@
 @available(macOS 13, iOS 16, *)
 public extension Duration {
- @inlinable static func minutes(_ minutes: Double) -> Self {
-  self.seconds(minutes * 6e1)
+ @inlinable
+ static func minutes(_ minutes: Double) -> Self {
+  seconds(minutes * 6e1)
  }
 
- @inlinable static func hours(_ hours: Double) -> Self {
-  self.seconds(hours * 36e2)
+ @inlinable
+ static func hours(_ hours: Double) -> Self {
+  seconds(hours * 36e2)
  }
 
- @inlinable static func days(_ days: Double) -> Self {
-  self.seconds(days * 864e2)
+ @inlinable
+ static func days(_ days: Double) -> Self {
+  seconds(days * 864e2)
  }
 
- /// Returns an tuple containing optional the optional unsigned integer for
+ /// - returns: an optional tuple containing the optional unsigned integer for
  /// microseconds or seconds, which is useful for functions that work with
  /// different precision such as `sleep` or `usleep`
- @inlinable var sleepMeasure: (microseconds: UInt32?, seconds: UInt32?) {
+ @inlinable
+ var sleepMeasure: (microseconds: UInt32?, seconds: UInt32?) {
   guard self != .zero else { return (nil, nil) }
   let (seconds, attoseconds) = self.components
   if seconds != .zero, attoseconds != .zero {
@@ -43,6 +47,36 @@ public extension Duration {
  }
 
  @inlinable
+ var microseconds: Int64 {
+  let (seconds, attoseconds) = components
+  if seconds > 0 {
+   let __seconds = seconds * 1_000_000
+   if attoseconds > 0 {
+    return __seconds + attoseconds / 1_000_000
+   }
+   return __seconds
+  }
+
+  if attoseconds > 0 { return attoseconds / 1_000_000 }
+  return .zero
+ }
+
+ @inlinable
+ var milliseconds: Int64 {
+  let (seconds, attoseconds) = components
+  if seconds > 0 {
+   let __seconds = seconds * 1000
+   if attoseconds > 0 {
+    return __seconds + attoseconds / 1000
+   }
+   return __seconds
+  }
+
+  if attoseconds > 0 { return attoseconds / 1000 }
+  return .zero
+ }
+
+ @inlinable
  var seconds: Double {
   let (seconds, attoseconds) = components
   if seconds > 0 {
@@ -61,29 +95,30 @@ public extension Duration {
 @available(macOS 13, iOS 16, *)
 extension Duration: LosslessStringConvertible {
  public enum Unit: String, CaseIterable, LosslessStringConvertible {
-  case nanoseconds = "n", 
+  case nanoseconds = "n",
        microseconds = "us",
        milliseconds = "ms",
        seconds = "s", minutes = "m", hours = "h", days = "d"
+
   /// The multiplication factor in base seconds.
   var factor: Double {
    switch self {
-   case .minutes: return 6e1
-   case .hours: return 36e2
-   case .days: return 864e2
+   case .minutes: 6e1
+   case .hours: 36e2
+   case .days: 864e2
    default: fatalError("factor for \(self) is not implemented")
    }
   }
 
   var aliases: Set<String> {
    switch self {
-   case .nanoseconds: return ["ns", "nano", "nanosecond", "nanoseconds"]
-   case .microseconds: return ["u", "µ", "µs", "microsecond", "microseconds"]
-   case .milliseconds: return ["ms", "millisecond", "milliseconds"]
-   case .seconds: return ["sec", "secs", "second", "seconds"]
-   case .minutes: return ["min", "mins", "minute", "minutes"]
-   case .hours: return ["hr", "hrs", "hour", "hours"]
-   case .days: return ["day", "days"]
+   case .nanoseconds: ["ns", "nano", "nanosecond", "nanoseconds"]
+   case .microseconds: ["u", "µ", "µs", "microsecond", "microseconds"]
+   case .milliseconds: ["ms", "millisecond", "milliseconds"]
+   case .seconds: ["sec", "secs", "second", "seconds"]
+   case .minutes: ["min", "mins", "minute", "minutes"]
+   case .hours: ["hr", "hrs", "hour", "hours"]
+   case .days: ["day", "days"]
    }
   }
 
@@ -96,28 +131,31 @@ extension Duration: LosslessStringConvertible {
 
   public var description: String {
    switch self {
-   case .nanoseconds: return "nanoseconds"
-   case .microseconds: return "microseconds"
-   case .milliseconds: return "milliseconds"
-   case .seconds: return "seconds"
-   case .minutes: return "minutes"
-   case .hours: return "hours"
-   case .days: return "days"
+   case .nanoseconds: "nanoseconds"
+   case .microseconds: "microseconds"
+   case .milliseconds: "milliseconds"
+   case .seconds: "seconds"
+   case .minutes: "minutes"
+   case .hours: "hours"
+   case .days: "days"
    }
   }
  }
 
  public init?(_ description: String) {
-  guard let index = description.lastIndex(where: \.isNumber),
-        index < description.endIndex
+  guard
+   let index = description.lastIndex(where: \.isNumber),
+   index < description.endIndex
   else { return nil }
 
   let partition = description.index(after: index)
 
   let number = description[description.startIndex ..< partition]
   let str = description[partition ..< description.endIndex].filter(\.isLetter)
-  guard let number = Double(number),
-        let unit = str.isEmpty ? .seconds : Unit(String(str)) else { return nil }
+  guard
+   let number = Double(number),
+   let unit =
+   str.isEmpty ? .seconds : Unit(String(str)) else { return nil }
 
   switch unit {
   case .nanoseconds:
@@ -157,8 +195,9 @@ extension Duration: LosslessStringConvertible {
 
 @available(macOS 13, iOS 16, *)
 public extension Duration {
- @inlinable var timerView: String {
-  var seconds = self.seconds
+ @inlinable
+ var timerView: String {
+  var seconds = seconds
   var minutes: Double = .zero
   var hours: Double = .zero
 
@@ -211,6 +250,7 @@ public extension Duration {
 #if os(Linux)
 public extension Duration {
  @_disfavoredOverload
- @inlinable func formatted() -> String { timerView }
+ @inlinable
+ func formatted() -> String { timerView }
 }
 #endif
