@@ -873,6 +873,31 @@ public extension Collection where Element: Equatable {
  }
 }
 
+public extension RangeReplaceableCollection
+ where Self: BidirectionalCollection {
+ @inlinable
+ func prefix(
+  _ predicate: (Element) throws -> Bool
+ ) rethrows -> SubSequence? {
+  guard let index = try firstIndex(where: predicate) else {
+   return nil
+  }
+  return self[..<index]
+ }
+
+ @inlinable
+ func suffix(
+  _ predicate: (Element) throws -> Bool
+ ) rethrows -> SubSequence? {
+  guard
+   let predicateIndex = try lastIndex(where: predicate),
+   let index = index(predicateIndex, offsetBy: 1, limitedBy: endIndex) else {
+   return nil
+  }
+  return self[index...]
+ }
+}
+
 public extension Collection {
  @inlinable
  func element(after index: Index) -> Element? {
