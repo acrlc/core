@@ -34,3 +34,7 @@ public struct InterfaceID:
   self.init(string)
  }
 }
+
+extension InterfaceID: CustomStringConvertible {
+ public var description: String { rawValue }
+}
