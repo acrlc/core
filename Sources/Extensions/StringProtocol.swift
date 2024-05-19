@@ -14,25 +14,44 @@ public extension StringProtocol {
   replacingOccurrences(of: " ", with: "")
  }
 
- @inlinable static var comma: Self { "," }
- @inlinable static var period: Self { "." }
- @inlinable static var hyphen: Self { "-" }
- @inlinable static var space: Self { " " }
- @inlinable static var underscore: Self { "_" }
- @inlinable static var newline: Self { "\n" }
- @inlinable static var tab: Self { "\t" }
- @inlinable static var bullet: Self { "•" }
- @inlinable static var arrow: Self { "→" }
- @inlinable static var arrowRight: Self { "→" }
- @inlinable static var arrowLeft: Self { "←" }
- @inlinable static var fullstop: Self { "⇥" }
- @inlinable static var checkmark: Self { "✔︎" }
- @inlinable static var xmark: Self { "✘" }
- @inlinable static var `return`: Self { "⏎" }
- @inlinable static var plus: Self { "+" }
- @inlinable static var minus: Self { "-" }
- @inlinable static var equal: Self { "=" }
- @inlinable var range: Range<Index> { startIndex ..< endIndex }
+ @inlinable
+ static var comma: Self { "," }
+ @inlinable
+ static var period: Self { "." }
+ @inlinable
+ static var hyphen: Self { "-" }
+ @inlinable
+ static var space: Self { " " }
+ @inlinable
+ static var underscore: Self { "_" }
+ @inlinable
+ static var newline: Self { "\n" }
+ @inlinable
+ static var tab: Self { "\t" }
+ @inlinable
+ static var bullet: Self { "•" }
+ @inlinable
+ static var arrow: Self { "→" }
+ @inlinable
+ static var arrowRight: Self { "→" }
+ @inlinable
+ static var arrowLeft: Self { "←" }
+ @inlinable
+ static var fullstop: Self { "⇥" }
+ @inlinable
+ static var checkmark: Self { "✔︎" }
+ @inlinable
+ static var xmark: Self { "✘" }
+ @inlinable
+ static var `return`: Self { "⏎" }
+ @inlinable
+ static var plus: Self { "+" }
+ @inlinable
+ static var minus: Self { "-" }
+ @inlinable
+ static var equal: Self { "=" }
+ @inlinable
+ var range: Range<Index> { startIndex ..< endIndex }
 }
 
 // MARK: Operations
@@ -54,15 +73,17 @@ public extension [String] {
    let components =
     (caseSensitive ? string : string.lowercased())
      .components(separatedBy: caseSensitive ? base : base.lowercased())
-   guard components.count == 2,
-         components[0].isEmpty,
-         var last = components.last
+   guard
+    components.count == 2,
+    components[0].isEmpty,
+    var last = components.last
    else {
     elements.remove(at: 0)
     continue
    }
    if let `extension` {
-    let `extension` = "\(caseSensitive ? `extension` : `extension`.lowercased())"
+    let `extension` =
+     "\(caseSensitive ? `extension` : `extension`.lowercased())"
     last = last.replacingOccurrences(of: ".\(`extension`)", with: "")
    }
    let split = last.split(whereSeparator: \.isWhitespace)
@@ -71,21 +92,24 @@ public extension [String] {
     continue
    }
    let first = String(split.first!)
-   if let prefix,
-      (caseSensitive ? first : first.lowercased())
-      == (caseSensitive ? prefix : prefix.lowercased()) {
-    if let last = split.last,
-       let index = Int(last),
-       index == count + 1 {
+   if
+    let prefix,
+    (caseSensitive ? first : first.lowercased())
+    == (caseSensitive ? prefix : prefix.lowercased()) {
+    if
+     let last = split.last,
+     let index = Int(last),
+     index == count + 1 {
      count = index
      continue
     } else if split.count == 1 {
      count += 1
      continue
     }
-   } else if split.count == 1 || includePrefixes,
-             let last = split.last,
-             let index = Int(last) {
+   } else if
+    split.count == 1 || includePrefixes,
+    let last = split.last,
+    let index = Int(last) {
     count = index == count + 1 ? index : count + 1
     continue
    }
@@ -96,13 +120,48 @@ public extension [String] {
   }
   guard elements.notEmpty else { return base }
   //  guard elements.count > 1 else {
-  //   return "\(base) \(prefix?.wrapped == nil ? adjustedOffset.description : prefix!)"
+  //   return "\(base) \(prefix?.wrapped == nil ? adjustedOffset.description :
+  //   prefix!)"
   //  }
   return """
   \(base) \
   \(prefix?.wrapped == nil ? .empty : "\(prefix!)\(count > 1 ? " " : .empty)")\
   \(count.description)
   """
+ }
+}
+
+// MARK: - Splitting
+public extension String {
+ func partition(
+  whereSeparator isSeparator: (Self.Element) throws
+   -> Bool
+ ) rethrows -> [SubSequence] {
+  var parts: [SubSequence] = .empty
+  if let firstIndex = try firstIndex(where: isSeparator) {
+   let initialRange = startIndex ..< firstIndex
+   parts.append(self[initialRange])
+
+   var cursor: Self.Index = index(after: firstIndex)
+   parts.append(self[firstIndex ..< cursor])
+
+   while let nextIndex = try self[cursor...].firstIndex(where: isSeparator) {
+    let base = self[cursor ..< nextIndex]
+    if !base.isEmpty {
+     parts.append(base)
+    }
+
+    cursor = index(after: nextIndex)
+    parts.append(self[nextIndex ..< cursor])
+   }
+
+   if cursor < endIndex {
+    parts.append(self[cursor...])
+   }
+   return parts
+  } else {
+   return [SubSequence(self)]
+  }
  }
 }
 
@@ -139,12 +198,9 @@ public extension String {
 }
 
 // MARK: - Casing
-/// The basic formatting of a string in a well-known form
-/// `camel` for `camelCase`
-/// `snake` for `snake_case`
-/// `type` for `TypeCase`
-public enum _StringCase: String, Sendable, Codable {
- case camel, snake, type
+/// The casing of a string based on common formats.
+public enum _StringCase: String, @unchecked Sendable, Codable {
+ case type, camel, snake
 }
 
 public extension StringProtocol {
@@ -152,42 +208,14 @@ public extension StringProtocol {
 }
 
 public extension String {
- mutating func `case`(_ case: Case) {
-  switch `case` {
-  case .type:
-   @_transparent
-   func `case`(with character: Character) -> Self {
-    let splits = self.split(separator: character)
-    return splits.map { substring -> Substring in
-     if substring.first!.isUppercase {
-      return substring
-     }
-     var substring = substring
-     return substring.removeFirst().uppercased() + substring
-    }.joined()
-   }
-
-   if self.contains(.space) {
-    self = `case`(with: .space)
-   }
-
-   if self.contains(.underscore) {
-    self = `case`(with: .underscore)
-   }
-   if self.first!.isLowercase {
-    self = self.removeFirst().uppercased() + self
-   }
-  default: break
-  }
- }
-
+ /// A predictable recasing of the given string.
  func casing(_ case: Case) -> Self {
   assert(notEmpty)
   switch `case` {
   case .type:
    @_transparent
    func `case`(with character: Character) -> Self {
-    let splits = self.split(separator: character)
+    let splits = split(separator: character)
     return splits.map { substring -> Substring in
      if substring.first!.isUppercase {
       return substring
@@ -197,21 +225,23 @@ public extension String {
     }.joined()
    }
 
-   if self.contains(.space) {
+   if contains(.space) {
     return `case`(with: .space)
    }
 
-   if self.contains(.underscore) {
+   if contains(.underscore) {
     return `case`(with: .underscore)
    }
-   if self.first!.isLowercase {
-    var `self` = self
-    return self.removeFirst().uppercased() + self
+
+   if let index = firstIndex(where: { $0.isLowercase }), index == startIndex {
+    return String(
+     self[...index].capitalized + self[self.index(after: index)...]
+    )
    }
   case .camel:
    @_transparent
    func `case`(with character: Character) -> Self {
-    var splits = self.split(separator: character)
+    var splits = split(separator: character)
 
     var first = splits.removeFirst()
 
@@ -227,81 +257,86 @@ public extension String {
     }.joined()
    }
 
-   if self.contains(.space) {
+   if contains(.space) {
     return `case`(with: .space)
    }
 
-   if self.contains(.underscore) {
+   if contains(.underscore) {
     return `case`(with: .underscore)
    }
 
-  case .snake: break // split by capital letters and / or underscores
+   if let index = firstIndex(where: { $0.isUppercase }), index == startIndex {
+    return String(
+     self[...index].lowercased() + self[self.index(after: index)...]
+    )
+   }
+  case .snake:
+   if contains(.space) {
+    var splits = split(separator: .space)
+
+    var first = splits.removeFirst()
+
+    if first.first!.isUppercase {
+     first = first.removeFirst().lowercased() + first
+    }
+    return first + splits.map { substring -> Substring in
+     if substring.first!.isLowercase {
+      return .underscore + substring
+     }
+     var substring = substring
+
+     return .underscore + substring.removeFirst().lowercased() + substring
+    }.joined()
+   }
+
+   if contains(where: \.isUppercase) {
+    var copy = self
+    if let index = firstIndex(where: { $0.isUppercase }), index == startIndex {
+     copy = String(
+      self[...index].lowercased() + self[self.index(after: index)...]
+     )
+    }
+
+    var splits = copy.partition(whereSeparator: { $0.isUppercase })
+    var index = splits.startIndex
+
+    while index < splits.endIndex {
+     let current = splits[index]
+     if
+      let previousIndex =
+      splits.index(index, offsetBy: -1, limitedBy: splits.startIndex) {
+      let previous = splits[previousIndex]
+      if previous.count == 1, previous.first!.isUppercase {
+       splits[index] = previous + current
+       splits.remove(at: previousIndex)
+      }
+     }
+
+     index += 1
+    }
+
+    return splits.map { $0.lowercased() }.joined(separator: .underscore)
+   }
   }
   return self
+ }
+
+ mutating func `case`(_ case: Case) {
+  self = casing(`case`)
  }
 }
 
 public extension Substring {
  func casing(_ case: Case) -> Self {
-  assert(!isEmpty)
-  switch `case` {
-  case .type:
-   @_transparent
-   func `case`(with character: Character) -> String {
-    let splits = self.split(separator: character)
-    return splits.map { substring -> Substring in
-     if substring.first!.isUppercase {
-      return substring
-     }
-     var substring = substring
-     return substring.removeFirst().uppercased() + substring
-    }.joined()
-   }
+  Self(String(self).casing(`case`))
+ }
 
-   if self.contains(.space) {
-    return Self(`case`(with: .space))
-   }
-
-   if self.contains(.underscore) {
-    return Self(`case`(with: .underscore))
-   }
-   if self.first!.isLowercase {
-    var `self` = self
-    return self.removeFirst().uppercased() + self
-   }
-  case .camel:
-   @_transparent
-   func `case`(with character: Character) -> Self {
-    var splits = self.split(separator: character)
-
-    var first = splits.removeFirst()
-
-    if first.first!.isUppercase {
-     first = first.removeFirst().lowercased() + first
-    }
-    return first + splits.map { substring -> Substring in
-     if substring.first!.isUppercase {
-      return substring
-     }
-     var substring = substring
-     return substring.removeFirst().uppercased() + substring
-    }.joined()
-   }
-
-   if self.contains(.space) {
-    return `case`(with: .space)
-   }
-
-   if self.contains(.underscore) {
-    return `case`(with: .underscore)
-   }
-
-  case .snake: break // split by capital letters and / or underscores
-  }
-  return self
+ mutating func `case`(_ case: Case) {
+  self = casing(`case`)
  }
 }
 
+// MARK: - Hashing
 #if os(Linux) && canImport(Crypto)
 import protocol Crypto.HashFunction
 
