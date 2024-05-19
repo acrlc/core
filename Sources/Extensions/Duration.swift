@@ -1,4 +1,4 @@
-@available(macOS 13, iOS 16, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 public extension Duration {
  @inlinable
  static func minutes(_ minutes: Double) -> Self {
@@ -15,13 +15,12 @@ public extension Duration {
   seconds(days * 864e2)
  }
 
- /// - returns: an optional tuple containing the optional unsigned integer for
- /// microseconds or seconds, which is useful for functions that work with
- /// different precision such as `sleep` or `usleep`
+ /// A tuple of different precisions that work with `usleep` or `sleep`.
  @inlinable
  var sleepMeasure: (microseconds: UInt32?, seconds: UInt32?) {
   guard self != .zero else { return (nil, nil) }
   let (seconds, attoseconds) = self.components
+
   if seconds != .zero, attoseconds != .zero {
    return (UInt32(seconds + (attoseconds / 2500)), nil)
   } else if attoseconds != .zero {
@@ -92,7 +91,7 @@ public extension Duration {
  }
 }
 
-@available(macOS 13, iOS 16, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 extension Duration: LosslessStringConvertible {
  public enum Unit: String, CaseIterable, LosslessStringConvertible {
   case nanoseconds = "n",
@@ -123,10 +122,11 @@ extension Duration: LosslessStringConvertible {
   }
 
   public init?(_ description: String) {
-   let unit = Self(rawValue: description) ??
+   let unit =
+    Self(rawValue: description) ??
     Self.allCases.first(where: { $0.aliases.contains(description) })
-   if let unit { self = unit }
-   else { return nil }
+
+   if let unit { self = unit } else { return nil }
   }
 
   public var description: String {
@@ -154,8 +154,7 @@ extension Duration: LosslessStringConvertible {
   let str = description[partition ..< description.endIndex].filter(\.isLetter)
   guard
    let number = Double(number),
-   let unit =
-   str.isEmpty ? .seconds : Unit(String(str)) else { return nil }
+   let unit = str.isEmpty ? .seconds : Unit(String(str)) else { return nil }
 
   switch unit {
   case .nanoseconds:
@@ -182,8 +181,6 @@ extension Duration: LosslessStringConvertible {
    // TODO: fix possible overflow
    let number = number * unit.factor
    if number >= 1 {
-    // TODO: fix fractions causing long numbers
-    // must be manually separated from the seconds component?
     self = .seconds(number)
    } else {
     self = .nanoseconds(Int64(number * 1e-9))
@@ -193,7 +190,7 @@ extension Duration: LosslessStringConvertible {
  }
 }
 
-@available(macOS 13, iOS 16, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 public extension Duration {
  @inlinable
  var timerView: String {
