@@ -15,9 +15,33 @@ public extension StringProtocol {
  }
 
  @inlinable
+ var normalizingSpaces: String {
+  map {
+   guard $0 == "_" else { return $0 }
+   return " "
+  }
+  .reduce(into: String()) { (results, element: Character) -> () in
+   if let last = results.last {
+    if last.isWhitespace, element.isWhitespace {
+     return
+    }
+    if last.isLowercase, element.isUppercase {
+     results += " \(element)"
+     return
+    }
+   }
+
+   results += "\(element)"
+  }
+  .trimmingCharacters(in: .whitespaces)
+ }
+
+ @inlinable
  static var comma: Self { "," }
  @inlinable
  static var period: Self { "." }
+ @inlinable
+ static var ellipsis: Self { "…" }
  @inlinable
  static var hyphen: Self { "-" }
  @inlinable
@@ -197,10 +221,10 @@ public extension String {
  }
 }
 
-// MARK: - Casing
+// MARK: - Style
 /// The casing of a string based on common formats.
 public enum _StringCase: String, @unchecked Sendable, Codable {
- case type, camel, snake
+ case type, camel, snake, identifier
 }
 
 public extension StringProtocol {
@@ -208,115 +232,52 @@ public extension StringProtocol {
 }
 
 public extension String {
+ @inlinable
+ var normalizedForCasing: String {
+  map {
+   guard $0 == "." || $0 == "_" else {
+    if $0.isNewline { return Character("") }
+    return $0
+   }
+   return " "
+  }
+  .reduce(into: String()) { (results, element: Character) -> () in
+   if let last = results.last {
+    if last.isWhitespace, element.isWhitespace {
+     return
+    }
+    if last.isLowercase, element.isUppercase {
+     results += " \(element)"
+     return
+    }
+   }
+   
+   results += "\(element)"
+  }
+  .trimmingCharacters(in: .whitespacesAndNewlines)
+ }
+
  /// A predictable recasing of the given string.
  func casing(_ case: Case) -> Self {
   assert(notEmpty)
+  let splits = normalizedForCasing.split(separator: " ")
   switch `case` {
   case .type:
-   @_transparent
-   func `case`(with character: Character) -> Self {
-    let splits = split(separator: character)
-    return splits.map { substring -> Substring in
-     if substring.first!.isUppercase {
-      return substring
-     }
-     var substring = substring
-     return substring.removeFirst().uppercased() + substring
-    }.joined()
-   }
-
-   if contains(.space) {
-    return `case`(with: .space)
-   }
-
-   if contains(.underscore) {
-    return `case`(with: .underscore)
-   }
-
-   if let index = firstIndex(where: { $0.isLowercase }), index == startIndex {
-    return String(
-     self[...index].capitalized + self[self.index(after: index)...]
-    )
-   }
+   return splits.map(\.capitalized).joined()
   case .camel:
-   @_transparent
-   func `case`(with character: Character) -> Self {
-    var splits = split(separator: character)
-
-    var first = splits.removeFirst()
-
-    if first.first!.isUppercase {
-     first = first.removeFirst().lowercased() + first
-    }
-    return first + splits.map { substring -> Substring in
-     if substring.first!.isUppercase {
-      return substring
-     }
-     var substring = substring
-     return substring.removeFirst().uppercased() + substring
-    }.joined()
-   }
-
-   if contains(.space) {
-    return `case`(with: .space)
-   }
-
-   if contains(.underscore) {
-    return `case`(with: .underscore)
-   }
-
-   if let index = firstIndex(where: { $0.isUppercase }), index == startIndex {
-    return String(
-     self[...index].lowercased() + self[self.index(after: index)...]
-    )
+   if splits.count > 1 {
+    return splits[...1].first! + splits[1...].map(\.capitalized).joined()
+   } else {
+    return lowercased()
    }
   case .snake:
-   if contains(.space) {
-    var splits = split(separator: .space)
-
-    var first = splits.removeFirst()
-
-    if first.first!.isUppercase {
-     first = first.removeFirst().lowercased() + first
-    }
-    return first + splits.map { substring -> Substring in
-     if substring.first!.isLowercase {
-      return .underscore + substring
-     }
-     var substring = substring
-
-     return .underscore + substring.removeFirst().lowercased() + substring
-    }.joined()
-   }
-
-   if contains(where: \.isUppercase) {
-    var copy = self
-    if let index = firstIndex(where: { $0.isUppercase }), index == startIndex {
-     copy = String(
-      self[...index].lowercased() + self[self.index(after: index)...]
-     )
-    }
-
-    var splits = copy.partition(whereSeparator: { $0.isUppercase })
-    var index = splits.startIndex
-
-    while index < splits.endIndex {
-     let current = splits[index]
-     if
-      let previousIndex =
-      splits.index(index, offsetBy: -1, limitedBy: splits.startIndex) {
-      let previous = splits[previousIndex]
-      if previous.count == 1, previous.first!.isUppercase {
-       splits[index] = previous + current
-       splits.remove(at: previousIndex)
-      }
-     }
-
-     index += 1
-    }
-
-    return splits.map { $0.lowercased() }.joined(separator: .underscore)
-   }
+   return splits
+    .map { $0.lowercased() }
+    .joined(separator: "_")
+  case .identifier:
+   return splits
+    .map { $0.lowercased() }
+    .joined(separator: ".")
   }
   return self
  }
