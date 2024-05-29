@@ -251,7 +251,7 @@ public extension String {
      return
     }
    }
-   
+
    results += "\(element)"
   }
   .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -266,7 +266,8 @@ public extension String {
    return splits.map(\.capitalized).joined()
   case .camel:
    if splits.count > 1 {
-    return splits[...1].first! + splits[1...].map(\.capitalized).joined()
+    return splits[...1].first!.lowercased() +
+     splits[1...].map(\.capitalized).joined()
    } else {
     return lowercased()
    }
