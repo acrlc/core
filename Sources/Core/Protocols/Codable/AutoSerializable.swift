@@ -35,6 +35,7 @@ public typealias AutoSerializable = Serializable & Deserializable
 
 import class Foundation.PropertyListSerialization
 
+#if !os(WASI)
 // MARK: PropertyList Conformances
 public extension Serializable where Self: PlistCodable {
  static func serialize(_ output: AutoEncoder.Output) throws -> [String: Any] {
@@ -68,3 +69,4 @@ public extension Deserializable where Self: PlistCodable {
   )
  }
 }
+#endif
