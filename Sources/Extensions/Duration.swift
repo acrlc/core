@@ -244,7 +244,7 @@ public extension Duration {
  }
 }
 
-#if os(Linux)
+#if os(Linux) || os(WASI)
 public extension Duration {
  @_disfavoredOverload
  @inlinable
