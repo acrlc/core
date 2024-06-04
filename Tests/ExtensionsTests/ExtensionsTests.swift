@@ -115,3 +115,23 @@ final class TestLosslessStringDuration: XCTestCase {
   #endif
  }
 }
+
+final class TestCasing: XCTestCase {
+ let assert: [String.Case: String] = [
+  .type: "OneTwoThree",
+  .camel: "oneTwoThree",
+  .snake: "one_two_three",
+  .identifier: "one.two.three",
+  .kebab: "one-two-three"
+ ]
+
+ func test() {
+  for (initialCase, initialString) in assert {
+   for expectedCase in String.Case.allCases {
+    let expectedString = assert[expectedCase]!
+    XCTAssertEqual(initialString.casing(expectedCase), expectedString)
+    XCTAssertEqual(expectedString.casing(initialCase), initialString)
+   }
+  }
+ }
+}
