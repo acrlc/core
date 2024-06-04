@@ -223,8 +223,8 @@ public extension String {
 
 // MARK: - Style
 /// The casing of a string based on common formats.
-public enum _StringCase: String, @unchecked Sendable, Codable {
- case type, camel, snake, identifier
+public enum _StringCase: String, CaseIterable, Sendable, Codable {
+ case type, camel, snake, identifier, kebab
 }
 
 public extension StringProtocol {
@@ -235,7 +235,7 @@ public extension String {
  @inlinable
  var normalizedForCasing: String {
   map {
-   guard $0 == "." || $0 == "_" else {
+   guard $0 == "." || $0 == "_" || $0 == "-" else {
     if $0.isNewline { return Character("") }
     return $0
    }
@@ -279,8 +279,11 @@ public extension String {
    return splits
     .map { $0.lowercased() }
     .joined(separator: ".")
+  case .kebab:
+   return splits
+    .map { $0.lowercased() }
+    .joined(separator: "-")
   }
-  return self
  }
 
  mutating func `case`(_ case: Case) {
