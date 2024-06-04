@@ -9,6 +9,7 @@ import Musl
 import WinSDK
 #elseif canImport(Darwin)
 import Darwin
+#elseif os(WASI)
 #else
 #error("The Core utilities module was unable to identify your C library.")
 #endif
@@ -69,8 +70,10 @@ public enum SystemInfo {
   } else {
    return sysconf(CInt(_SC_NPROCESSORS_ONLN))
   }
-  #else
+  #elseif !os(WASI)
   return sysconf(CInt(_SC_NPROCESSORS_ONLN))
+  #else
+  return 1
   #endif
  }
 }
