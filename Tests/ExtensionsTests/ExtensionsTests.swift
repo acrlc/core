@@ -22,7 +22,7 @@ final class TestTimerView: XCTestCase {
 
  lazy var durations = assert.map(\.1)
 
- #if !(os(Linux) || os(Windows))
+ #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
  var options: XCTMeasureOptions {
   let base = XCTMeasureOptions()
   base.iterationCount = 111
@@ -41,7 +41,7 @@ final class TestTimerView: XCTestCase {
     _ = duration.formatted()
    }
   }
-  #else
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
   measure(options: options) {
    for duration in durations {
     _ = duration.formatted()
@@ -61,7 +61,7 @@ final class TestTimerView: XCTestCase {
     _ = duration.timerView
    }
   }
-  #else
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
   measure(options: options) {
    for duration in durations {
     _ = duration.timerView
@@ -87,7 +87,7 @@ final class TestLosslessStringDuration: XCTestCase {
 
  lazy var labels = assert.map(\.0)
 
- #if !(os(Linux) || os(Windows))
+ #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
  var options: XCTMeasureOptions {
   let base = XCTMeasureOptions()
   base.iterationCount = 111
@@ -106,7 +106,7 @@ final class TestLosslessStringDuration: XCTestCase {
     _ = Duration(label).unsafelyUnwrapped
    }
   }
-  #else
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
   measure(options: options) {
    for label in labels {
     _ = Duration(label).unsafelyUnwrapped
