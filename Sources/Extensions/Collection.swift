@@ -9,7 +9,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async -> ()
  ) async where Element: Sendable, Self == Self.SubSequence {
   await withTaskGroup(of: Void.self) { group in
-   let limit = limit ?? SystemInfo.coreCount
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var count: Int = .zero
    while !isEmpty {
     while count < limit, !isEmpty {
@@ -29,7 +29,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async -> ()
  ) async where Element: Sendable, Self: RangeReplaceableCollection {
   await withTaskGroup(of: Void.self) { group in
-   let limit = limit ?? SystemInfo.coreCount
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var count: Int = .zero
    while !isEmpty {
     while count < limit, !isEmpty {
@@ -51,11 +51,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async -> ()
  ) async where Element: Sendable {
   await withTaskGroup(of: Void.self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var offset = startIndex
    var count: Int = .zero
    while offset < endIndex {
@@ -79,11 +75,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping () async -> ()
  ) async where Element: BinaryInteger {
   await withTaskGroup(of: Void.self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var offset = startIndex
    var count: Int = .zero
    while offset < endIndex {
@@ -105,11 +97,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async throws -> ()
  ) async rethrows where Element: Sendable, Self == Self.SubSequence {
   try await withThrowingTaskGroup(of: Void.self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var count: Int = .zero
    while !isEmpty {
     while count < limit, !isEmpty {
@@ -130,11 +118,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async throws -> ()
  ) async rethrows where Element: Sendable, Self: RangeReplaceableCollection {
   try await withThrowingTaskGroup(of: Void.self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var count: Int = .zero
    while !isEmpty {
     while count < limit, !isEmpty {
@@ -157,11 +141,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async throws -> ()
  ) async rethrows where Element: Sendable {
   try await withThrowingTaskGroup(of: Void.self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var offset = startIndex
    var count: Int = .zero
    while offset < endIndex {
@@ -186,11 +166,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping () async throws -> ()
  ) async rethrows where Element: BinaryInteger {
   try await withThrowingTaskGroup(of: Void.self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var offset = startIndex
    var count: Int = .zero
    while offset < endIndex {
@@ -212,11 +188,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async -> Result
  ) async -> [Result] where Element: Sendable, Self == Self.SubSequence {
   await withTaskGroup(of: Result.self, returning: [Result].self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var results: [Result] = .empty
    var count: Int = .zero
    while !isEmpty {
@@ -241,11 +213,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async -> Result
  ) async -> [Result] where Element: Sendable, Self: RangeReplaceableCollection {
   await withTaskGroup(of: Result.self, returning: [Result].self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var results: [Result] = .empty
    var count: Int = .zero
    while !isEmpty {
@@ -271,11 +239,7 @@ public extension Collection where Index: Comparable {
   _ task: @Sendable @escaping (Element) async -> Result
  ) async -> [Result] where Element: Sendable {
   await withTaskGroup(of: Result.self, returning: [Result].self) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var results: [Result] = .empty
    var offset = startIndex
    var count: Int = .zero
@@ -308,11 +272,7 @@ public extension Collection where Index: Comparable {
    of: Result.self,
    returning: [Result].self
   ) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var results: [Result] = .empty
    var count: Int = .zero
    while !isEmpty {
@@ -343,11 +303,7 @@ public extension Collection where Index: Comparable {
    of: Result.self,
    returning: [Result].self
   ) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var results: [Result] = .empty
    var count: Int = .zero
    while !isEmpty {
@@ -377,11 +333,7 @@ public extension Collection where Index: Comparable {
    of: Result.self,
    returning: [Result].self
   ) { group in
-   #if os(WASI)
-   let limit = limit ?? 4
-   #else
-   let limit = limit ?? SystemInfo.coreCount
-   #endif
+   let limit = Swift.min(limit ?? SystemInfo.coreCount, SystemInfo.coreCount)
    var results: [Result] = .empty
    var offset = startIndex
    var count: Int = .zero
