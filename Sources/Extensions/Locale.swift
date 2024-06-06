@@ -4,7 +4,7 @@ import struct Foundation.Locale
 extension Locale {
  #if !os(WASI)
  @inline(__always)
- var hoursPerCycleFromFormatter: Double {
+ var hoursPerCycleFromFormatter: Int {
   if
    DateFormatter.dateFormat(
     fromTemplate: "j", options: 0, locale: .current
@@ -17,7 +17,7 @@ extension Locale {
  #endif
 
  @inline(__always)
- public var hoursPerCycle: Double {
+ public var hoursPerCycle: Int {
   #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
   return if #available(macOS 13, iOS 16, tvOS 16, watchOS 9, *) {
    switch self.hourCycle {
