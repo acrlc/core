@@ -75,6 +75,15 @@ public extension StringProtocol {
  @inlinable
  static var equal: Self { "=" }
  @inlinable
+ static var slash: Self { "/" }
+ @inlinable
+ static var backslash: Self { "\\" }
+ @inlinable
+ static var colon: Self { ":" }
+ @inlinable
+ static var semicolon: Self { ";" }
+
+ @inlinable
  var range: Range<Index> { startIndex ..< endIndex }
 }
 
