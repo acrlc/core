@@ -125,13 +125,142 @@ final class TestCasing: XCTestCase {
   .kebab: "one-two-three"
  ]
 
+ /// Test each case against each other with the `casing()` extension.
+ /// This should check every predictable case, becauses the values in `assert`
+ /// have to check against every value within `assert`.
  func test() {
   for (initialCase, initialString) in assert {
    for expectedCase in String.Case.allCases {
+    // the stable string for the above case
     let expectedString = assert[expectedCase]!
+    print(
+     """
+     Testing \(initialCase)Case, against \(expectedCase)Case \
+     with initial string '\(initialString)' \
+     and expected string '\(expectedString)'
+     """
+    )
+    // the stable string matches the string cased from the initial
     XCTAssertEqual(initialString.casing(expectedCase), expectedString)
+    // the initial string matches the string cased from the stable string
     XCTAssertEqual(expectedString.casing(initialCase), initialString)
    }
   }
+ }
+
+ // MARK: - Measure Casing
+ #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+ var options: XCTMeasureOptions {
+  let base = XCTMeasureOptions()
+  base.iterationCount = 111
+  return base
+ }
+ #endif
+
+ // MARK: Casing for code
+ func testCamelCaseToType() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "oneTwoThree".casing(.type)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "oneTwoThree".casing(.type)
+  }
+  #endif
+  XCTAssertEqual("oneTwoThree".casing(.type), assert[.type]!)
+ }
+
+ func testTypeCaseToCamel() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "OneTwoThree".casing(.camel)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "OneTwoThree".casing(.camel)
+  }
+  #endif
+  XCTAssertEqual("OneTwoThree".casing(.camel), assert[.camel]!)
+ }
+
+ func testSnakeCaseToType() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "one_two_three".casing(.type)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "one_two_three".casing(.type)
+  }
+  #endif
+  XCTAssertEqual("one_two_three".casing(.type), assert[.type]!)
+ }
+
+ func testTypeCaseToSnake() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "OneTwoThree".casing(.snake)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "OneTwoThree".casing(.snake)
+  }
+  #endif
+  XCTAssertEqual("OneTwoThree".casing(.snake), assert[.snake]!)
+ }
+
+ func testCamelCaseToSnake() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "oneTwoThree".casing(.snake)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "oneTwoThree".casing(.snake)
+  }
+  #endif
+  XCTAssertEqual("oneTwoThree".casing(.snake), assert[.snake]!)
+ }
+
+ func testSnakeCaseToCamel() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "one_two_three".casing(.camel)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "one_two_three".casing(.camel)
+  }
+  #endif
+
+  XCTAssertEqual("one_two_three".casing(.camel), assert[.camel]!)
+ }
+
+ // MARK: Casing for URLs
+ func testSpacedLowercaseToKebab() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "one two three".casing(.kebab)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "one two three".casing(.kebab)
+  }
+  #endif
+  XCTAssertEqual("one two three".casing(.kebab), assert[.kebab]!)
+ }
+
+ func testSpacedUppercaseToKebab() {
+  #if os(Linux) || os(Windows)
+  measure {
+   _ = "One Two Three".casing(.kebab)
+  }
+  #elseif os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  measure(options: options) {
+   _ = "One Two Three".casing(.kebab)
+  }
+  #endif
+  XCTAssertEqual("One Two Three".casing(.kebab), assert[.kebab]!)
  }
 }
