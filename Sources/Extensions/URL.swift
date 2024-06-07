@@ -23,6 +23,12 @@ extension URL: ExpressibleByStringLiteral {
  }
 }
 
+public extension URL {
+ static func + (lhs: Self, rhs: String) -> Self {
+  lhs.appendingPathComponent(rhs)
+ }
+}
+
 extension URL: LosslessStringConvertible {
  public init?(_ description: String) {
   self = URL(resolved: description)
