@@ -1,5 +1,5 @@
 import protocol Core.Infallible
-extension Optional where Wrapped: Infallible {
+public extension Optional where Wrapped: Infallible {
  @inlinable
  func unwrap(_ other: Wrapped) -> Wrapped {
   self == nil ? .defaultValue : other
