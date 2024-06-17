@@ -2,7 +2,7 @@
 /// UploadFile/ee01e6/important-list-of-regular-expressions-and-its-uses/
 public struct Regex {
  @inline(__always)
- public let email = #"/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/"#
+ public let email = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
  @inline(__always)
  public let uncommonEmail = #"/^([a-z0-9_\.\+-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/"#
  @inline(__always)
