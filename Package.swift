@@ -16,7 +16,8 @@ let package = Package(
   .target(name: "Components"),
   .target(name: "Utilities"),
   .testTarget(name: "CoreTests", dependencies: ["Core"]),
-  .testTarget(name: "ExtensionsTests", dependencies: ["Extensions"])
+  .testTarget(name: "ExtensionsTests", dependencies: ["Extensions"]),
+  .testTarget(name: "StructuresTests", dependencies: ["Core"])
  ]
 )
 
