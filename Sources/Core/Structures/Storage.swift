@@ -170,7 +170,7 @@ public extension AnyKeyValueStorage {
 }
 
 // MARK: - Typed KeyValueStorage
-public struct KeyValueStorage<Value>: ~Copyable {
+public struct KeyValueStorage<Value> {
  var _keys: [Int] = .empty
  var _keysOffset: Int = .zero
  var _offsets: [Int] = .empty
