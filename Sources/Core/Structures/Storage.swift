@@ -145,6 +145,7 @@ public extension AnyKeyValueStorage {
   _valuesOffset = .zero
  }
 
+ var keys: [Int] { _keys }
  var values: [Any] { _values }
  var count: Int { _valuesOffset }
 
@@ -294,6 +295,7 @@ public extension KeyValueStorage {
   _valuesOffset > .zero
  }
 
+ var keys: [Int] { _keys }
  var values: [Value] { _values }
  var count: Int { _valuesOffset }
 
