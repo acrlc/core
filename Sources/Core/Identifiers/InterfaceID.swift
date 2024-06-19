@@ -111,4 +111,5 @@ public struct InterfaceID:
 
 extension InterfaceID: CustomStringConvertible {
  public var description: String { rawValue }
+ public var capitalized: String { rawValue.capitalized }
 }
