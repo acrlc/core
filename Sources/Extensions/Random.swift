@@ -11,7 +11,7 @@ public extension Int {
  /// - Parameter n:  Interval max
  /// - Returns:      Returns a random Int point number between 0 and n max
  static func random(n: Int) -> Int {
-  Int(arc4random_uniform(UInt32(n)))
+  Int.random(in: .zero ... .max)
  }
 
  ///  Random integer between min and max
@@ -30,7 +30,7 @@ public extension Int {
 public extension Double {
  /// Returns a random floating point number between 0.0 and 1.0, inclusive.
  static var random: Double {
-  Double(arc4random()) / 0xFFFF_FFFF
+  Double.random(in: 0.0 ... 1.0)
  }
 
  /// Random double between 0 and n-1.
@@ -47,7 +47,7 @@ public extension Double {
 public extension Float {
  /// Returns a random floating point number between 0.0 and 1.0, inclusive.
  static var random: Float {
-  Float(arc4random()) / Float(Int32.max)
+  Float.random(in: 0.0 ... 1.0)
  }
 
  /// Random float between 0 and n-1.
@@ -64,7 +64,8 @@ import struct Foundation.CGFloat
 extension CGFloat {
  /// Randomly returns either 1.0 or -1.0.
  static var randomSign: CGFloat {
-  (arc4random_uniform(2) == 0) ? 1.0 : -1.0
+  Bool.random() ? 1.0 : -1.0
+//(Int.random(in: 0 ... 1) == 0) ? 1.0 : -1.0
  }
 
  /// Returns a random floating point number between 0.0 and 1.0, inclusive.
@@ -73,7 +74,6 @@ extension CGFloat {
  }
 
  /// Random CGFloat between 0 and n-1.
- ///
  /// - Parameter n:  Interval max
  /// - Returns:      Returns a random CGFloat point number between 0 and n max
  static func random(min: CGFloat, max: CGFloat) -> CGFloat {
