@@ -10,5 +10,7 @@ extension Optional: Infallible where Wrapped: Infallible {
 
 import struct Foundation.UUID
 extension UUID: Infallible {
- @inlinable public static var defaultValue: Self { Self() }
+ @inlinable public static var defaultValue: Self {
+  Self(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+ }
 }
