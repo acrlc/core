@@ -1,3 +1,5 @@
+import struct Foundation.UUID
+
 public protocol Randomizable: Infallible {
  mutating func randomize()
 }
@@ -7,6 +9,12 @@ public extension Randomizable {
   var `self` = Self.defaultValue
   self.randomize()
   return self
+ }
+}
+
+extension UUID: Randomizable {
+ public mutating func randomize() {
+  self = UUID()
  }
 }
 
