@@ -1,12 +1,12 @@
 import struct Foundation.Date
 
 import protocol Core.Infallible
-extension Date: Infallible {
+extension Date: @retroactive Infallible {
  @_disfavoredOverload
  @inlinable public static var defaultValue: Self { .init() }
 }
 
-extension Date: ExpressibleByNilLiteral {
+extension Date: @retroactive ExpressibleByNilLiteral {
  @inlinable public init(nilLiteral: ()) { self.init() }
 }
 
@@ -21,7 +21,7 @@ public extension Date {
  }
 }
 
-extension Date: Randomizable {
+extension Date: @retroactive Randomizable {
  @inlinable public mutating func randomize() {
   self = .random()
  }

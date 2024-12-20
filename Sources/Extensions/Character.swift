@@ -66,7 +66,7 @@ public extension Character {
 }
 
 import protocol Core.ExpressibleAsEmpty
-extension Character: ExpressibleAsEmpty {
+extension Character: @retroactive ExpressibleAsEmpty {
  public static var empty: Character { Character("\0") }
  public var isEmpty: Bool { self == .empty }
 }

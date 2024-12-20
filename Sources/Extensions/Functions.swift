@@ -46,8 +46,8 @@ public func sleep<A: Clock>(
 }
 
 @inline(__always)
-public func sleep(for nanoseconds: Double) async throws {
- try await Task.sleep(nanoseconds: UInt64(nanoseconds))
+public func sleep(for seconds: Double) async throws {
+ try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
 }
 
 @inline(__always)

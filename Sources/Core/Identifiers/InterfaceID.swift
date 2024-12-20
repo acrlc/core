@@ -25,6 +25,10 @@ public struct InterfaceID:
   self.init(rawValue: string)
  }
 
+ public init(_ strings: String...) {
+  self.init(rawValue: strings.joined(separator: "."))
+ }
+
  /// The substring after the last period mark, or the entire string if no
  /// separators exist.
  public var id: String {
@@ -106,6 +110,10 @@ public struct InterfaceID:
   _ rhs: some CustomStringConvertible
  ) -> Self {
   Self(rawValue: "\(self.rawValue).\(rhs.description)")
+ }
+ 
+ public var components: [Substring] {
+  rawValue.split(separator: ".")
  }
 }
 

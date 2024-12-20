@@ -300,6 +300,20 @@ public extension KeyValueStorage {
  var count: Int { _valuesOffset }
 
  // MARK: Sequence Operations
+ mutating func popFirst() -> Value? {
+  _keys.removeFirst()
+  _keysOffset -= 1
+  _valuesOffset -= 1
+  return _values.removeFirst()
+ }
+ 
+ mutating func popLast() -> Value? {
+  _keys.removeLast()
+  _keysOffset -= 1
+  _valuesOffset -= 1
+  return _values.removeLast()
+ }
+
  @inline(__always)
  func uncheckedValue(at offset: Int) -> Value {
   _values[offset]

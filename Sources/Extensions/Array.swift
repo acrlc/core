@@ -53,3 +53,20 @@ public extension Array {
  }
 }
 #endif
+
+// MARK: Sorting
+public extension Array {
+ func sorted<Value: Comparable>(
+  by keyPath: KeyPath<Element, Value>,
+  comparator: (Value, Value) -> Bool = { $0 < $1 }
+ ) -> Self {
+  sorted(by: { comparator($0[keyPath: keyPath], $1[keyPath: keyPath]) })
+ }
+ 
+ mutating func sort<Value: Comparable>(
+  by keyPath: KeyPath<Element, Value>,
+  comparator: (Value, Value) -> Bool = { $0 < $1 }
+ ) {
+  sort(by: { comparator($0[keyPath: keyPath], $1[keyPath: keyPath]) })
+ }
+}

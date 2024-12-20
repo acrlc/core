@@ -8,10 +8,7 @@ import OpenCombine
 
 /// An object that conforms to `AutoDecodable` & `AutoEncodable`.
 public protocol AutoCodable: AutoDecodable & AutoEncodable
- where AutoDecoder.Input == AutoEncoder.Output {
- static var decoder: AutoDecoder { get }
- static var encoder: AutoEncoder { get }
-}
+ where AutoDecoder.Input == AutoEncoder.Output {}
 
 /// An object with a static, top level decoder.
 public protocol AutoDecodable: Codable {

@@ -1,6 +1,11 @@
 @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
 public extension Duration {
  @inlinable
+ static func nanoseconds(_ seconds: Int64) -> Self {
+  Self(secondsComponent: seconds, attosecondsComponent: 0)
+ }
+
+ @inlinable
  static func minutes(_ minutes: Double) -> Self {
   seconds(minutes * 6e1)
  }
@@ -92,7 +97,7 @@ public extension Duration {
 }
 
 @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
-extension Duration: LosslessStringConvertible {
+extension Duration: @retroactive LosslessStringConvertible {
  public enum Unit: String, CaseIterable, LosslessStringConvertible {
   case nanoseconds = "n",
        microseconds = "us",

@@ -23,6 +23,7 @@ public extension Collection where Index: Comparable {
   }
  }
 
+ @inline(__always)
  mutating func dequeue(
   limit: Int? = nil,
   priority: TaskPriority = .medium,
@@ -858,5 +859,14 @@ public extension Collection {
    return nil
   }
   return self[nextIndex]
+ }
+}
+
+public extension RangeReplaceableCollection where Element: Identifiable {
+ mutating func remove(_ element: Element) {
+  guard let removeIndex = firstIndex(where: { $0.id == element.id }) else {
+   return
+  }
+  remove(at: removeIndex)
  }
 }

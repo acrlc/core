@@ -6,7 +6,7 @@ public extension Collection<URLQueryItem> {
 }
 
 import struct Foundation.URL
-extension URL: ExpressibleByStringLiteral {
+extension URL: @retroactive ExpressibleByStringLiteral {
  #if os(WASI)
  public init(resolved string: String) {
   self = URL(string: string) ?? URL(fileURLWithPath: string)
@@ -29,7 +29,7 @@ public extension URL {
  }
 }
 
-extension URL: LosslessStringConvertible {
+extension URL: @retroactive LosslessStringConvertible {
  public init?(_ description: String) {
   self = URL(resolved: description)
  }

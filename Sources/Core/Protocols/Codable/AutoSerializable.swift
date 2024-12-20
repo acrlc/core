@@ -6,45 +6,53 @@ import OpenCombine
 
 /// An object that can be converted into a dictionary from data
 public protocol Serializable: AutoEncodable {
- static func serialize(_ output: AutoEncoder.Output) throws -> [String: Any]
+ associatedtype SerializedOutput
+ static func serialize(_ output: AutoEncoder.Output) throws -> SerializedOutput
 }
 
 extension Optional: Serializable where Wrapped: Serializable {
  public static func serialize(
   _ output: Wrapped.AutoEncoder.Output
- ) throws -> [String: Any] {
+ ) throws -> Wrapped.SerializedOutput {
   try Wrapped.serialize(output)
  }
 }
 
-/// An object that can be converted from a dictionary into data
-public protocol Deserializable: AutoDecodable {
- static func deserialize(_ input: [String: Any]) throws -> AutoDecoder.Input
-}
-
-extension Optional: Deserializable where Wrapped: Deserializable {
- public static func deserialize(
-  _ input: [String: Any]
- ) throws -> AutoDecoder.Input {
-  try Wrapped.deserialize(input)
- }
-}
-
-/// An object that conforms to `Serializable` & `Deserializable`
-public typealias AutoSerializable = Serializable & Deserializable
-
-import class Foundation.PropertyListSerialization
-
 #if !os(WASI)
+import class Foundation.PropertyListSerialization
 // MARK: PropertyList Conformances
 public extension Serializable where Self: PlistCodable {
- static func serialize(_ output: AutoEncoder.Output) throws -> [String: Any] {
+ static func serialize(_ output: AutoEncoder.Output) throws -> SerializedOutput {
+  var format: PropertyListSerialization.PropertyListFormat = .xml
+  let plist = try PropertyListSerialization
+  .propertyList(
+   from: output, options: .mutableContainersAndLeaves, format: &format
+  )
+  guard
+   let output = plist as? SerializedOutput else {
+   throw EncodingError
+    .invalidValue(
+     output,
+     EncodingError.Context(
+      codingPath: [],
+      debugDescription:
+      """
+      SerializationError: Invalid output (\(SerializedOutput.self)) for \
+      \(Self.self)\nPlease ensure that the property list format matches that \
+      of the desired output.\nProperty List Description:\n\(plist as! String)
+      """
+     )
+    )
+  }
+  return output
+ }
+ static func serialize<A>(_ output: AutoEncoder.Output, as: A.Type) throws -> A {
   var format: PropertyListSerialization.PropertyListFormat = .xml
   guard
    let output = try PropertyListSerialization
    .propertyList(
     from: output, options: .mutableContainersAndLeaves, format: &format
-   ) as? [String: Any] else {
+   ) as? A else {
    throw EncodingError
     .invalidValue(
      output,
@@ -53,7 +61,6 @@ public extension Serializable where Self: PlistCodable {
       debugDescription:
       """
       SerializationError: Invalid data input for \(Self.self)
-      Please ensure that every property can be stored on a property list
       """
      )
     )
@@ -61,12 +68,32 @@ public extension Serializable where Self: PlistCodable {
   return output
  }
 }
+#endif
 
+/// An object that can be converted from a dictionary into data
+public protocol Deserializable: AutoDecodable {
+ associatedtype SerializedInput
+ static func deserialize(_ input: SerializedInput) throws -> AutoDecoder.Input
+}
+
+#if !os(WASI)
 public extension Deserializable where Self: PlistCodable {
- static func deserialize(_ input: [String: Any]) throws -> AutoDecoder.Input {
+ static func deserialize(_ input: SerializedInput) throws -> AutoDecoder.Input {
   try PropertyListSerialization.data(
    fromPropertyList: input, format: .xml, options: .zero
   )
  }
 }
 #endif
+
+extension Optional: Deserializable where Wrapped: Deserializable {
+ public static func deserialize(
+  _ input: Wrapped.SerializedInput
+ ) throws -> AutoDecoder.Input {
+  try Wrapped.deserialize(input)
+ }
+}
+
+/// An object that conforms to `Serializable` & `Deserializable`
+public protocol AutoSerializable: Serializable & Deserializable
+where SerializedOutput == SerializedInput {}
