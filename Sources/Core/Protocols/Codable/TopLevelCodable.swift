@@ -4,7 +4,7 @@ import Combine
 #else
 import OpenCombine
 #endif
-#if os(WASI) || os(Windows)
+#if os(WASI) || os(Windows) || os(Linux)
 extension JSONEncoder: TopLevelEncoder {}
 extension JSONDecoder: TopLevelDecoder {}
 #endif
