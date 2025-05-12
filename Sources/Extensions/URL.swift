@@ -13,9 +13,11 @@ extension URL: @retroactive ExpressibleByStringLiteral {
  }
  #else
  public init(resolved string: String) {
-  self =
-   URL(string: string) ??
-   URL(fileURLWithPath: string).resolvingSymlinksInPath()
+  if let url =  URL(string: string), url.scheme != nil {
+   self = url
+  } else {
+   self = URL(fileURLWithPath: string).resolvingSymlinksInPath()
+  }
  }
  #endif
  public init(stringLiteral: StaticString) {
