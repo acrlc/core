@@ -311,13 +311,13 @@ public extension Substring {
 }
 
 // MARK: - Hashing
-#if os(Linux) && canImport(Crypto)
-import protocol Crypto.HashFunction
-#elseif canImport(CryptoKit)
+#if canImport(CryptoKit)
 import protocol CryptoKit.HashFunction
+#elseif canImport(Crypto)
+import protocol Crypto.HashFunction
 #endif
 
-#if canImport(Crypto) || canImport(CryptoKit)
+#if canImport(CryptoKit) || canImport(Crypto)
 public extension String {
  func hashString(with function: (some HashFunction).Type) -> String {
   function.hash(data: Data(utf8)).compactMap { String(format: "%02x", $0) }
