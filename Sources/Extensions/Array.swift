@@ -41,19 +41,6 @@ public extension RangeReplaceableCollection where Self: MutableCollection, Eleme
  }
 }
 
-#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS) && canImport(SwiftUI)
-import SwiftUI
-
-public extension Array {
- @discardableResult mutating func trim(_ index: Index) -> Self {
-  guard endIndex > index else { return self }
-  let indexes = IndexSet(integersIn: index ..< endIndex)
-  remove(atOffsets: indexes)
-  return self
- }
-}
-#endif
-
 // MARK: Sorting
 public extension Array {
  func sorted<Value: Comparable>(
